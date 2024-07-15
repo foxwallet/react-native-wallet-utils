@@ -1,0 +1,57 @@
+{
+  "name": "@fox_wallet/react-native-wallet-utils",
+  "title": "React Native Wallet Utils for FoxWallet",
+  "version": "1.0.0",
+  "description": "The react native crypto library written in Rust/Go for FoxWallet",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "(cd ./rust && cargo test)",
+    "clean": "(cd ./rust && cargo clean)",
+    "build": "scripts/rust_build.sh",
+    "init_dep": "scripts/rust_init.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foxwallet/react-native-wallet-utils.git",
+    "baseUrl": "https://github.com/foxwallet/react-native-wallet-utils"
+  },
+  "files": [
+    "android/",
+    "ios/",
+    "spacemesh-go/",
+    "index.d.ts",
+    "index.js",
+    "react-native-wallet-utils-debug.podspec",
+    "react-native-wallet-utils.podspec",
+    "README.md",
+    "yarn.lock"
+  ],
+  "keywords": [
+    "react-native",
+    "crypto",
+    "substrate",
+    "polkadot",
+    "ethereum"
+  ],
+  "author": {
+    "name": "foxwallet",
+    "email": "dev@foxwallet.com"
+  },
+  "license": "Apache-2",
+  "licenseFilename": "LICENSE",
+  "readmeFilename": "README.md",
+  "peerDependencies": {
+    "react": "^16.8.1",
+    "react-native": ">=0.60.0-rc.0 <1.0.x"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.2",
+    "axios": "^1.5.1",
+    "react": "^16.9.0",
+    "react-native": "^0.61.5"
+  }
+}
