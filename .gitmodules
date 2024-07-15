@@ -1,0 +1,9 @@
+[submodule "fox-ironfish"]
+	path = fox-ironfish
+	url = https://github.com/foxwallet/fox-ironfish.git
+[submodule "fox-snarkvm"]
+	path = fox-snarkvm
+	url = https://github.com/foxwallet/snarkVM.git
+[submodule "fox-aleo-rust"]
+	path = fox-aleo-rust
+	url = https://github.com/foxwallet/fox-aleo-rust.git

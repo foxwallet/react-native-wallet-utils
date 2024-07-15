@@ -1,0 +1,8 @@
+framework module "GoCore" {
+	header "ref.h"
+    header "Fox.objc.h"
+    header "Universe.objc.h"
+    header "GoCore.h"
+
+    export *
+}

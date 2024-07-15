@@ -1,0 +1,55 @@
+[package]
+name = "core"
+version = "0.0.0"
+authors = ["foxwallet <dev@foxwallet.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0"
+ffi-support = "0.4"
+jni = { version = "0.19", optional = true }
+lazy_static = "1.4"
+libc = "0.2"
+thiserror = "1.0"
+ironfish_rust= { path = "../fox-ironfish/ironfish-rust" }
+hex = "0.4.3"
+serde = { version = "1.0.195", features = ["derive"] }
+serde_json = "1.0"
+subtle = "2.4"
+# aleo-rust = "0.4.2"
+aleo-rust = { path = "../fox-aleo-rust/rust" }
+openssl = { version = "0.10", features = ["vendored"] }
+
+
+# [dependencies.snarkvm-console]
+# version = "0.11.2"
+
+# [dependencies.snarkvm-fields]
+# version = "0.11.2"
+[dependencies.snarkvm-parameters]
+path = "../fox-snarkvm/parameters"
+
+[dependencies.rand]
+version = "0.8"
+
+[dependencies.itertools]
+version = "0.11.0"
+
+[dependencies.ahash]
+version = "0.8.3"
+default-features = false
+features = []
+
+[lib]
+name = "core"
+crate-type = ["staticlib", "cdylib"]
+
+[features]
+default = ["jni"]
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
