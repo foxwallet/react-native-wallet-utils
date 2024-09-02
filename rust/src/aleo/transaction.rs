@@ -1216,8 +1216,8 @@ mod tests {
         let start = Instant::now();
         let res = aleo_execute_program(
             dir,
-            String::from("https://dev.foxnb.net/api/v1/aleo"),
-            String::from("testnet"),
+            String::from("https://dev.foxnb.net/mobile/v1/aleo"),
+            String::from("mainnet"),
             private_key,
             program_id,
             function_name,
@@ -1260,8 +1260,8 @@ mod tests {
         let start = Instant::now();
         let res = aleo_execute_program(
             dir,
-            String::from("https://dev.foxnb.net/api/v1/aleo"),
-            String::from("testnet"),
+            String::from("https://dev.foxnb.net/mobile/v1/aleo"),
+            String::from("mainnet"),
             private_key,
             program_id,
             function_name,
@@ -1334,14 +1334,14 @@ mod tests {
     fn test_aleo_generate_prover_files() {
         let dir = String::from("./src/aleo_params/");
         let program_id = String::from("credits.aleo");
-        let function_name = String::from("fee_private");
+        let function_name = String::from("fee_public");
         let prover_file = format!("./src/aleo_params/{}-{}.prover", program_id, function_name);
         let verifier_file = format!(
             "./src/aleo_params/{}-{}.verifier",
             program_id, function_name
         );
         let res =
-            aleo_generate_prover_files(dir, String::from("https://api.explorer.aleo.org/v1"), String::from("testnet"), program_id, function_name, prover_file, verifier_file);
+            aleo_generate_prover_files(dir, String::from("https://dev.foxnb.net/mobile/v1/aleo"), String::from("mainnet"), program_id, function_name, prover_file, verifier_file);
         println!("result {:?} ", res);
         assert!(res.contains(r#"error":"""#));
     }
@@ -1353,7 +1353,7 @@ mod tests {
             String::from("");
         let program_id = String::from("credits.aleo");
         let function_name = String::from("transfer_public");
-        let inputs = serde_json::to_string(&["aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t", "2100000u64"]).unwrap();
+        let inputs = serde_json::to_string(&["aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t", "100000u64"]).unwrap();
         println!("raw inputs: {}", inputs);
         let fee_record = String::from("null");
         let base_fee = String::from("57000");
@@ -1370,8 +1370,8 @@ mod tests {
         let start = Instant::now();
         let res = aleo_execute_program(
             dir,
-            String::from("https://api.explorer.aleo.org/v1"),
-            String::from("testnet"),
+            String::from("https://dev.foxnb.net/mobile/v1/aleo"),
+            String::from("mainnet"),
             private_key,
             program_id,
             function_name,
@@ -1444,8 +1444,8 @@ mod tests {
 
     #[test]
     fn test_aleo_get_program_info() {
-        let rpc_url = String::from(" https://api.explorer.aleo.org/v1");
-        let chain_id = String::from("testnet");
+        let rpc_url = String::from(" https://dev.foxnb.net/mobile/v1/aleo");
+        let chain_id = String::from("mainnet");
         let program_id = String::from("aleo_name_service_registry_v1.aleo");
 
 
