@@ -1,6 +1,6 @@
 pub use aleo_rust::{
   Address,
-  // AleoV0,
+  AleoV0,
   AleoTestnetV0,
   BlockMemory,
   Ciphertext,
@@ -19,6 +19,7 @@ pub use aleo_rust::{
   Response,
   Signature,
   TestnetV0,
+  MainnetV0,
   Transaction,
   VerifyingKey,
   ViewKey,
@@ -52,9 +53,10 @@ pub type SignatureNative = Signature<CurrentNetwork>;
 pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
 // Network types
-pub type CurrentNetwork = TestnetV0;
-// pub type CurrentAleo = AleoV0;
-pub type CurrentAleo = AleoTestnetV0;
+pub type CurrentNetwork = MainnetV0;
+// pub type CurrentNetwork = TestnetV0;
+pub type CurrentAleo = AleoV0;
+// pub type CurrentAleo = AleoTestnetV0;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
