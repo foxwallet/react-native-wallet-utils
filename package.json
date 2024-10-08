@@ -1,7 +1,7 @@
 {
   "name": "@foxwallet/react-native-wallet-utils",
   "title": "React Native Wallet Utils for FoxWallet",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "The react native crypto library written in Rust/Go for FoxWallet",
   "private": false,
   "publishConfig": {

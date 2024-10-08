@@ -183,14 +183,9 @@ export! {
           return serialize_aleo_error(&error)
         }
         let res = res.unwrap();
-        let res = res.to_bytes_le().map_err(|e| e.to_string());
-        if let Err(error) = res {
-          return serialize_aleo_error(&error)
-        }
-        let res = res.unwrap();
-        println!("res {:?} ", res);
+        println!("res: {:?}", res);
         json!({
-          "data": hex::encode(res),
+          "data": res.to_string(),
           "error": "",
         }).to_string()
     }
@@ -1324,7 +1319,7 @@ mod tests {
     fn test_aleo_sign_message() {
         let private_key =
             String::from("");
-        let message = String::from("070707");
+        let message = String::from("48656c6c6f2c20576f726c6421");
         let res = aleo_sign_message(private_key, message);
         println!("result {:?} ", res);
         assert!(res.contains(r#"error":"""#));
