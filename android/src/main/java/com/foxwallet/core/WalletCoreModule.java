@@ -200,5 +200,5 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
 
     private static native String aleoHashBhp256Internal(String str);
 
-    private static native String polkadotScryptSync(String password_str, String salt_str, int log2_n, int r, int p);
+    private static native String polkadotScryptSyncInternal(String password_str, String salt_str, int log2_n, int r, int p);
 }
