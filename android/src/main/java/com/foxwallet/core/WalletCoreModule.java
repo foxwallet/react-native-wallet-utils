@@ -162,7 +162,7 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public String polkadotScrypt(ReadableMap params, Promise promise) {
+    public void polkadotScrypt(ReadableMap params, Promise promise) {
         String password = params.getString("passphrase");
         String salt = params.getString("salt");
         int log2_n = params.getInt("log2_n");
