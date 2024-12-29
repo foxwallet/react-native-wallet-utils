@@ -161,14 +161,14 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
         promise.resolve(aleoHashBhp256Internal(str));
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    public String polkadotScryptSync(ReadableMap params) {
+    @ReactMethod
+    public String polkadotScrypt(ReadableMap params, Promise promise) {
         String password = params.getString("passphrase");
         String salt = params.getString("salt");
         int log2_n = params.getInt("log2_n");
         int r = params.getInt("r");
         int p = params.getInt("p");
-        return polkadotScryptSyncInternal(password, salt, log2_n, r, p);
+        promise.resolve(polkadotScryptInternal(password, salt, log2_n, r, p));
     }
 
     private static native String ironfishCreateAccountInternal();
@@ -200,5 +200,5 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
 
     private static native String aleoHashBhp256Internal(String str);
 
-    private static native String polkadotScryptSyncInternal(String password_str, String salt_str, int log2_n, int r, int p);
+    private static native String polkadotScryptInternal(String password_str, String salt_str, int log2_n, int r, int p);
 }

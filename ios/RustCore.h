@@ -48,4 +48,4 @@ const char* aleo_parse_record(struct ExternError*, const char* plaintext);
 
 const char* aleo_hash_bhp256(struct ExternError*, const char* str);
 
-const char* polkadot_scrypt_sync(struct ExternError*, const char* password_str, const char* salt_str, uint8_t log2_n, uint32_t r, uint32_t p);
+const char* polkadot_scrypt(struct ExternError*, const char* password_str, const char* salt_str, uint8_t log2_n, uint32_t r, uint32_t p);

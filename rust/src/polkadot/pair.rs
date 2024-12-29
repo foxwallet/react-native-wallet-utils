@@ -20,8 +20,8 @@ fn serialize_polkadot_data(data: &str) -> String {
 }
 
 export! {
-  @Java_com_foxwallet_core_WalletCoreModule_polkadotScryptSyncInternal
-  fn polkadot_scrypt_sync(password_str: String, salt_str: String, log2_n: u8, r: u32, p: u32) -> String {
+  @Java_com_foxwallet_core_WalletCoreModule_polkadotScryptInternal
+  fn polkadot_scrypt(password_str: String, salt_str: String, log2_n: u8, r: u32, p: u32) -> String {
     match ScryptParams::new(log2_n, r, p) {
         Ok(p) => {
             let mut res = [0u8; 64];
@@ -63,7 +63,7 @@ mod tests {
         let salt_hex = String::from("73616c74");
 
         let start = Instant::now();
-        let scrypt_result = polkadot_scrypt_sync(password_hex, salt_hex, 14, 8, 1);
+        let scrypt_result = polkadot_scrypt(password_hex, salt_hex, 14, 8, 1);
         let duration = start.elapsed();
         println!("Cost {:?}s to scrypt {:?}", duration, scrypt_result);
 
