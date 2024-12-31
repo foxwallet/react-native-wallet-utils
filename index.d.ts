@@ -39,4 +39,5 @@ declare module '@foxwallet/react-native-wallet-utils' {
     export function spaceMeshStringToAddressSync(pub: string): string;
     export function spaceMeshCreateTransaction(pk: string, to: string, amount: string, nonce: string, gasPrice: string, genesisID: string): Promise<string>;
     export function spaceMeshSelfSpawnTx(pk: string, nonce: string, gasPrice: string, genesisID: string): Promise<string>;
+    export function polkadotScrypt(params: { passphrase: string, salt: string, log2_n: number, r: number, p: number }): Promise<string>;
 }

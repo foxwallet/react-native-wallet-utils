@@ -80,4 +80,17 @@ RCT_EXTERN_METHOD(spaceMeshCreateTransaction:(NSString*)pk to:(NSString*)to amou
 
 RCT_EXTERN_METHOD(spaceMeshSelfSpawnTx:(NSString*)pk nonce:(NSString*)nonce gasPrice:(NSString*)gasPrice genesisID:(NSString*)genesisID resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 
+RCT_EXPORT_METHOD(polkadotScrypt:(NSDictionary*)params resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  NSString *passphrase = [params[@"passphrase"] stringValue];
+  NSString *salt = [params[@"salt"] stringValue];
+  uint8_t log2_n = [params[@"log2_n"] unsignedIntValue];
+  uint32_t r = [params[@"r"] unsignedIntValue];
+  uint32_t p = [params[@"p"] unsignedIntValue];
+
+  const char* resPtr = polkadot_scrypt(NULL, [passphrase UTF8String], [salt UTF8String], log2_n, r, p);
+  NSString *res = [[NSString alloc] initWithUTF8String:resPtr];
+  core_destroy_string(resPtr);
+  resolve(res);
+}
+
 @end

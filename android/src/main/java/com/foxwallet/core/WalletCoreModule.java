@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableMap;
 
 import fox.Fox;
 public class WalletCoreModule extends ReactContextBaseJavaModule {
@@ -160,6 +161,16 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
         promise.resolve(aleoHashBhp256Internal(str));
     }
 
+    @ReactMethod
+    public void polkadotScrypt(ReadableMap params, Promise promise) {
+        String password = params.getString("passphrase");
+        String salt = params.getString("salt");
+        int log2_n = params.getInt("log2_n");
+        int r = params.getInt("r");
+        int p = params.getInt("p");
+        promise.resolve(polkadotScryptInternal(password, salt, log2_n, r, p));
+    }
+
     private static native String ironfishCreateAccountInternal();
 
     private static native String ironfishCreateAccountFromPrivateKeyInternal(String pk);
@@ -188,4 +199,6 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
     private static native String aleoParseRecordInternal(String plaintext);
 
     private static native String aleoHashBhp256Internal(String str);
+
+    private static native String polkadotScryptInternal(String password_str, String salt_str, int log2_n, int r, int p);
 }

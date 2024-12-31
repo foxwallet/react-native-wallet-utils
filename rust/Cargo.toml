@@ -11,7 +11,7 @@ jni = { version = "0.19", optional = true }
 lazy_static = "1.4"
 libc = "0.2"
 thiserror = "1.0"
-ironfish_rust= { path = "../fox-ironfish/ironfish-rust" }
+ironfish_rust = { path = "../fox-ironfish/ironfish-rust" }
 hex = "0.4.3"
 serde = { version = "1.0.195", features = ["derive"] }
 serde_json = "1.0"
@@ -19,7 +19,7 @@ subtle = "2.4"
 # aleo-rust = "0.4.2"
 aleo-rust = { path = "../fox-aleo-rust/rust" }
 openssl = { version = "0.10", features = ["vendored"] }
-
+scrypt = { version = "0.2", default-features = false }
 
 # [dependencies.snarkvm-console]
 # version = "0.11.2"
