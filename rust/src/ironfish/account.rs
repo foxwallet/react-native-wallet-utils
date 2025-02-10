@@ -42,15 +42,16 @@ mod tests {
     #[test]
     fn test_ironfish_create_account() {
         let result = ironfish_create_account();
+		// println!("{}", result);
         assert!(result.len() > 0);
     }
 
     #[test]
     fn test_ironfish_create_account_from_pk() {
+        let result = ironfish_create_account_from_pk(String::from("54351d0caba1aa4a4a83a0fb4feff3152274ed4f880ed72bc25b5a52c06c33e9"));
+        assert_eq!(result, r#"{"data":{"outgoingViewKey":"fb6889a983e2e59bf4ec27551b13db19afce3ee58ea599734c049e049b01b743","incomingViewKey":"4a4d8a2e0e2fde31708089ea3c61c7766c1576626f0e90aa83d75a328b09ec07","viewKey":"82fc4bd6a0cbfe423d4ba9f229a02749efb9b062a3375ccf778ec6c6defe908ba8fa5985e9e2d3cb567cd18cf8277709a4e309af4c4a2b4babfbf86b01045b97","publicAddress":"b447e2bbeeccf0d445ff672433f28dbcc5a09280931999155e912eb197719141"},"error":""}"#);
         let result = ironfish_create_account_from_pk(String::from(""));
-        assert_eq!(result, r#"{"data":{"incomingViewKey":"38f0ef124757d927ff82de65da80e856194d928449d93b5d141009d0bfe4c102","outgoingViewKey":"3ebf58f366a0c67d505773d98bd27bac9a8adfb1c5ac36cc08e7b56739828d82","publicAddress":"9e55a5269ae1415217ab4416dcf2cd373e035682d28479b51d5d486dfdbd91be","viewKey":"e13da16eb1ad40d84159c46d0279cded925b7ace261cdb46acdc1146d741e889002867a92752ad7c82b7b3f0fda6adb4e6075cdb9a3f21e55ecdc6eb83ba9011"},"error":""}"#);
-        let result = ironfish_create_account_from_pk(String::from(""));
-        assert_eq!(result, r#"{"data":"","error":"InvalidPaymentAddress"}"#);
+        assert_eq!(result, r#"{"error":"InvalidPaymentAddress","data":""}"#);
     }
 
 	#[test]

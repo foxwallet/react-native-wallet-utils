@@ -36,9 +36,9 @@ async function getRandomPhrase() {
 
 - `node.js` (`>=10`)
 - `yarn` (tested on `1.22.19`)
-- `rustup` (tested on `rustup 1.27.0`)
-- `rustc` (tested on `rustc 1.77.2`)
-- `cargo` (tested on `cargo 1.77.2`)
+- `rustup` (tested on `rustup 1.27.1`)
+- `rustc` (tested on `rustc 1.84.1`)
+- `cargo` (tested on `cargo 1.84.1`)
 - `android_ndk` (tested on `r23`, can be downloaded [here](https://developer.android.com/ndk/downloads))
 - `$NDK_HOME` envarionment variable set to ndk home directory (eg. `/usr/local/opt/android-ndk`)
 - `go`
