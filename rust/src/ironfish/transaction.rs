@@ -1,15 +1,16 @@
 use serde::{Deserialize};
-use ironfish_rust::{
+use ironfish::{
     sapling_bls12::Scalar,
     witness::{Witness, WitnessNode},
     Note, ProposedTransaction,
     SaplingKey,
+    transaction::{TransactionVersion}
 };
 use subtle::{CtOption};
 use crate::export;
 use super::utils::{serialize_string_result, serialize_bool_result};
 use std::str;
-use ironfish_rust::{sapling_bls12::SaplingWrapper};
+use ironfish::{sapling_bls12::SaplingWrapper};
 
 // pub const MAX_MINT_OR_BURN_VALUE: u64 = 100_000_000_000_000_000;
 
@@ -72,10 +73,15 @@ fn convert_ctoption_to_result<T>(option: CtOption<T>) -> Result<T, &'static str>
 
 fn ironfish_sign_transaction_internal(raw_tx_str: String, spend_key: String) -> Result<String, String> {
     let tx: RawTransaction = serde_json::from_str(&raw_tx_str).map_err(|e| e.to_string())?;
-    let sapling_key = SaplingKey::from_hex(&spend_key).map_err(|e| e.to_string())?;
-    let _ = sapling_key.public_address();
-    let mut builder = ProposedTransaction::new(sapling_key);
+
+    let spender_key = SaplingKey::from_hex(&spend_key).map_err(|e| e.to_string())?;
+
+    let _ = spender_key.public_address();
+
+    let mut transaction = ProposedTransaction::new(TransactionVersion::latest());
+
     let RawTransaction { expiration, fee, outputs, spends  } = tx;
+
     for spend in spends.iter() {
         let Spend { note, witness } = spend;
         let note_item = {
@@ -87,7 +93,7 @@ fn ironfish_sign_transaction_internal(raw_tx_str: String, spend_key: String) -> 
         for item in auth_path.iter() {
             let mut bytes = [0u8; 32];
             hex::decode_to_slice(&item.hash_of_sibling, &mut bytes).map_err(|e| e.to_string())?;
-            let sc = convert_ctoption_to_result(Scalar::from_bytes(&bytes))?;
+            let sc = convert_ctoption_to_result(Scalar::from_bytes_le(&bytes))?;
             let res_item = if item.side.as_str() == "Left" {
                 WitnessNode::Left(sc)
             } else {
@@ -95,16 +101,17 @@ fn ironfish_sign_transaction_internal(raw_tx_str: String, spend_key: String) -> 
             };
             auth_path_res.push(res_item);
         }
+
         let witness_item = Witness {
             tree_size: witness.tree_size as usize,
             root_hash: {
                 let mut bytes = [0u8; 32];
                 hex::decode_to_slice(&witness.root_hash, &mut bytes).map_err(|e| e.to_string())?;
-                convert_ctoption_to_result(Scalar::from_bytes(&bytes))?
+                convert_ctoption_to_result(Scalar::from_bytes_le(&bytes))?
             },
             auth_path: auth_path_res,
         };
-        builder.add_spend(note_item, &witness_item).map_err(|e| e.to_string())?;
+        transaction.add_spend(note_item, &witness_item).map_err(|e| e.to_string())?;
     }
 
     for output in outputs.iter() {
@@ -113,14 +120,15 @@ fn ironfish_sign_transaction_internal(raw_tx_str: String, spend_key: String) -> 
             let data = hex::decode(note).map_err(|e| e.to_string())?;
             Note::read(&data[..]).map_err(|e| e.to_string())?
         };
-        builder.add_output(note_item).map_err(|e| e.to_string())?;
+        transaction.add_output(note_item).map_err(|e| e.to_string())?;
     }
 
-    builder.set_expiration(expiration);
-    let transaction = builder.post(None, fee.parse::<u64>().map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
-    transaction.verify().map_err(|e| e.to_string())?;
+    transaction.set_expiration(expiration);
+
+    let public_transaction = transaction.post(&spender_key, None, fee.parse::<u64>().map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+
     let mut vec: Vec<u8> = vec![];
-    transaction.write(&mut vec).map_err(|e| e.to_string())?;
+    public_transaction.write(&mut vec).map_err(|e| e.to_string())?;
     let signed_transaction = hex::encode(vec);
     Ok(signed_transaction)
 }
@@ -157,7 +165,7 @@ mod tests {
         let elapsed = start.elapsed();
         println!("Signed result: {}", res);
         println!("Duration: {} s", elapsed.as_secs());
-        assert!(res.contains(r#"01010000000000000002000000000000000000000000000000000000000000000001000000000000004547"#));
+        assert!(res.contains(r#"02010000000000000002000000000000000000000000000000000000000000000001000000000000004547"#));
     }
 
     #[test]

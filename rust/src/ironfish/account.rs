@@ -1,7 +1,7 @@
 // Copyright 2021-2021 FoxWallet.
 
 // use bip39::{Language};
-use ironfish_rust::{SaplingKey, PublicAddress};
+use ironfish::{SaplingKey, PublicAddress};
 use super::utils::{serialize_sampling_key, serialize_ironfish_error};
 use crate::export;
 
@@ -51,7 +51,7 @@ mod tests {
         let result = ironfish_create_account_from_pk(String::from("54351d0caba1aa4a4a83a0fb4feff3152274ed4f880ed72bc25b5a52c06c33e9"));
         assert_eq!(result, r#"{"data":{"outgoingViewKey":"fb6889a983e2e59bf4ec27551b13db19afce3ee58ea599734c049e049b01b743","incomingViewKey":"4a4d8a2e0e2fde31708089ea3c61c7766c1576626f0e90aa83d75a328b09ec07","viewKey":"82fc4bd6a0cbfe423d4ba9f229a02749efb9b062a3375ccf778ec6c6defe908ba8fa5985e9e2d3cb567cd18cf8277709a4e309af4c4a2b4babfbf86b01045b97","publicAddress":"b447e2bbeeccf0d445ff672433f28dbcc5a09280931999155e912eb197719141"},"error":""}"#);
         let result = ironfish_create_account_from_pk(String::from(""));
-        assert_eq!(result, r#"{"error":"InvalidPaymentAddress","data":""}"#);
+        assert_eq!(result, r#"{"error":"IronfishError { kind: InvalidPaymentAddress, source: None, backtrace: <disabled> }","data":""}"#);
     }
 
 	#[test]
