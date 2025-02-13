@@ -4,7 +4,7 @@
 LIB_NAME=core
 API_LEVEL=30
 
-NDK_HOME=~/Library/Android/sdk/ndk/23.2.8568313
+NDK_HOME=~/Library/Android/sdk/ndk/23.1.7779620
 
 ANDROID_ARCHS=(aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android)
 ANDROID_FOLDER=(arm64-v8a armeabi-v7a x86 x86_64)
