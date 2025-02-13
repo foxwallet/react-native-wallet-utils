@@ -1,4 +1,4 @@
-use ironfish::{SaplingKey, errors::IronfishError};
+use ironfish_rust::{SaplingKey, errors::IronfishError};
 use serde_json::json;
 
 pub fn serialize_sampling_key(key: &SaplingKey) -> String {
