@@ -41,7 +41,7 @@
     "name": "foxwallet",
     "email": "dev@foxwallet.com"
   },
-  "license": "Apache-2",
+  "license": "Apache-2.0",
   "licenseFilename": "LICENSE",
   "readmeFilename": "README.md",
   "peerDependencies": {
@@ -52,5 +52,6 @@
     "axios": "^1.5.1",
     "react": "^16.9.0",
     "react-native": "^0.61.5"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

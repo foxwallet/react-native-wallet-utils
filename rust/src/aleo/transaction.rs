@@ -1,35 +1,28 @@
 use super::types::{
-    APIClient, AddressNative, Ciphertext, Credits, CurrentAleo, CurrentNetwork, Environment,
-    FromBytes, FromFields, IdentifierNative, PrimeField, PrivateKeyNative, ProcessNative,
-    ProgramIDNative, ProgramManagerNative, ProgramNative, ProvingKeyNative, QueryNative,
-    RecordCiphertextNative, RecordPlaintextNative, SignatureNative, ToBytes, ToField,
-    TransactionNative, VerifyingKeyNative, ViewKeyNative,
-    Entry,
-    ValueNative,
-    RecordTypeNative,
-    EntryTypeNative,
-    Network,
-    PlaintextTypeNative,
-    StructTypeNative,
-    IndexMap,
-    ToBits,
+    APIClient, AddressNative, Ciphertext, Credits, CurrentAleo, CurrentNetwork, Entry,
+    EntryTypeNative, Environment, FromBytes, FromFields, IdentifierNative, IndexMap, Network,
+    PlaintextTypeNative, PrimeField, PrivateKeyNative, ProcessNative, ProgramIDNative,
+    ProgramNative, ProvingKeyNative, QueryNative, RecordCiphertextNative, RecordPlaintextNative,
+    RecordTypeNative, SignatureNative, StructTypeNative, ToBits, ToBytes, ToField,
+    TransactionNative, ValueNative, VarunaVersion, VerifyingKeyNative, ViewKeyNative,
 };
 use super::utils::{
     convert_str_to_transfer_type, hex_to_bytes, serialize_account, serialize_aleo_error,
 };
+use crate::aleo::types::PlaintextNative;
 use crate::export;
+use anyhow::{bail, ensure, Result};
+use itertools::Itertools;
 use rand::{rngs::StdRng, SeedableRng};
-use serde_json::{json, Value, to_string};
+use serde_json::{json, to_string, Value};
 use snarkvm_parameters::macros::set_dir;
+use snarkvm_synthesizer::program::StackKeys;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::str::FromStr;
 use std::time::Instant;
-use crate::aleo::types::PlaintextNative;
-use anyhow::{bail, ensure, Result};
-use itertools::Itertools;
 
 export! {
     @Java_com_foxwallet_core_WalletCoreModule_aleoDeserializeCreditsRecordInternal
@@ -451,7 +444,7 @@ export! {
         println!("start prove_execution");
 
         let execution = trace
-            .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
+            .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V1, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string());
         if let Err(error) = execution {
             return serialize_aleo_error(&error);
@@ -570,18 +563,18 @@ export! {
                 return serialize_aleo_error(&error);
             }
             println!("start prove_fee");
-            let final_fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string());
+            let final_fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V1,&mut StdRng::from_entropy()).map_err(|e|e.to_string());
             if let Err(error) = final_fee {
                 return serialize_aleo_error(&error);
             }
             let final_fee = final_fee.unwrap();
             println!("start verify_fee");
-            let res = process.verify_fee(&final_fee, execution_id).map_err(|e| e.to_string());
+            let res = process.verify_fee(VarunaVersion::V1,&final_fee, execution_id).map_err(|e| e.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
             println!("start verify_execution");
-            let res = process.verify_execution(&execution).map_err(|err| err.to_string());
+            let res = process.verify_execution(VarunaVersion::V1,&execution).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -601,7 +594,7 @@ export! {
             }).to_string()
         } else {
             println!("start verify_execution");
-            let res = process.verify_execution(&execution).map_err(|err| err.to_string());
+            let res = process.verify_execution(VarunaVersion::V1,&execution).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -1190,11 +1183,14 @@ mod tests {
     #[test]
     fn test_aleo_public_to_private_transfer_record() {
         let dir = String::from("./src/aleo_params/");
-        let private_key =
-            String::from("");
+        let private_key = String::from("");
         let program_id = String::from("credits.aleo");
         let function_name = String::from("transfer_public_to_private");
-        let inputs = serde_json::to_string(&["aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t", "2000000u64"]).unwrap();
+        let inputs = serde_json::to_string(&[
+            "aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t",
+            "2000000u64",
+        ])
+        .unwrap();
         println!("raw inputs: {}", inputs);
         let fee_record = String::from("null");
         let base_fee = String::from("370000");
@@ -1234,8 +1230,7 @@ mod tests {
     #[test]
     fn test_aleo_split_record() {
         let dir = String::from("./src/aleo_params/");
-        let private_key =
-            String::from("");
+        let private_key = String::from("");
         let program_id = String::from("credits.aleo");
         let function_name = String::from("split");
         let inputs = serde_json::to_string(&["{\n  owner: aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t.private,\n  microcredits: 2000000u64.private,\n  _nonce: 7364275430246742738179315920381733924740595470275114530575757694630527552686group.public\n}", "1000000u64"]).unwrap();
@@ -1312,13 +1307,15 @@ mod tests {
         let view_key = String::from("AViewKey1cYH2yRXZnF8zA7BkvJEbb1jvbkjWwg6o62gL2Lkcu87y");
         let res = aleo_decrypt_record(record_text, view_key);
         println!("res {}", res);
-        assert_eq!(res, r#"{"data":"{\n  owner: aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t.private,\n  microcredits: 8487913u64.private,\n  _nonce: 6107817010861444819617966419532330448725697096257316234258501716059239895777group.public\n}","error":""}"#);
+        assert_eq!(
+            res,
+            r#"{"data":"{\n  owner: aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t.private,\n  microcredits: 8487913u64.private,\n  _nonce: 6107817010861444819617966419532330448725697096257316234258501716059239895777group.public\n}","error":""}"#
+        );
     }
 
     #[test]
     fn test_aleo_sign_message() {
-        let private_key =
-            String::from("");
+        let private_key = String::from("");
         let message = String::from("48656c6c6f2c20576f726c6421");
         let res = aleo_sign_message(private_key, message);
         println!("result {:?} ", res);
@@ -1335,8 +1332,15 @@ mod tests {
             "./src/aleo_params/{}-{}.verifier",
             program_id, function_name
         );
-        let res =
-            aleo_generate_prover_files(dir, String::from("https://dev.foxnb.net/mobile/v1/aleo"), String::from("mainnet"), program_id, function_name, prover_file, verifier_file);
+        let res = aleo_generate_prover_files(
+            dir,
+            String::from("https://dev.foxnb.net/mobile/v1/aleo"),
+            String::from("mainnet"),
+            program_id,
+            function_name,
+            prover_file,
+            verifier_file,
+        );
         println!("result {:?} ", res);
         assert!(res.contains(r#"error":"""#));
     }
@@ -1344,11 +1348,14 @@ mod tests {
     #[test]
     fn test_aleo_execute_program() {
         let dir = String::from("./src/aleo_params/");
-        let private_key =
-            String::from("");
+        let private_key = String::from("");
         let program_id = String::from("credits.aleo");
         let function_name = String::from("transfer_public");
-        let inputs = serde_json::to_string(&["aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t", "100000u64"]).unwrap();
+        let inputs = serde_json::to_string(&[
+            "aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t",
+            "100000u64",
+        ])
+        .unwrap();
         println!("raw inputs: {}", inputs);
         let fee_record = String::from("null");
         let base_fee = String::from("57000");
@@ -1359,9 +1366,11 @@ mod tests {
             program_id, function_name
         );
         let fee_public_prover_file = format!("./src/aleo_params/credits.aleo-fee_public.prover");
-        let fee_public_verifier_file = format!("./src/aleo_params/credits.aleo-fee_public.verifier");
+        let fee_public_verifier_file =
+            format!("./src/aleo_params/credits.aleo-fee_public.verifier");
         let fee_private_prover_file = format!("./src/aleo_params/credits.aleo-fee_private.prover");
-        let fee_private_verifier_file = format!("./src/aleo_params/credits.aleo-fee_private.verifier");
+        let fee_private_verifier_file =
+            format!("./src/aleo_params/credits.aleo-fee_private.verifier");
         let start = Instant::now();
         let res = aleo_execute_program(
             dir,
@@ -1388,13 +1397,16 @@ mod tests {
     #[test]
     fn test_aleo_parse_record() {
         let record_text = String::from("{\n  owner: aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t.private,\n  token: 1field.private,\n  amount: 1000000u128.private,\n  _nonce: 8330039551488987378611890241359478445256923358029060207444253989434222025046group.public\n}");
-        let except = String::from(r#"{"data":{"token":"1field.private","amount":"10000000000u128.private"},"error":""}"#);
+        let except = String::from(
+            r#"{"data":{"token":"1field.private","amount":"10000000000u128.private"},"error":""}"#,
+        );
         let res = aleo_parse_record(record_text);
         println!("res {}", res);
         assert_eq!(except, res);
 
         // let record_text = String::from("{\n  owner: aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t.private,\n  token: 1field.private,\n  amount: 10000000000u128.private,\n  _nonce: 2101679574711592313386896873192856645190699089023911072544541006048163611328group.public\n}");
-        let record_text = String::from(r"{
+        let record_text = String::from(
+            r"{
            owner: aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t.private,
            foo: 5u8.private,
            bar: {
@@ -1420,8 +1432,11 @@ mod tests {
                 }
            },
            _nonce: 2101679574711592313386896873192856645190699089023911072544541006048163611328group.public
-        }");
-        let except = String::from(r#"{"data":{"foo":"5u8.private","bar":{"baz":"10field.private","qux":{"quux":{"corge":{"grault":{"garply":{"waldo":{"fred":{"plugh":{"xyzzy":{"thud":"true.private"}}}}}}}}}}},"error":""}"#);
+        }",
+        );
+        let except = String::from(
+            r#"{"data":{"foo":"5u8.private","bar":{"baz":"10field.private","qux":{"quux":{"corge":{"grault":{"garply":{"waldo":{"fred":{"plugh":{"xyzzy":{"thud":"true.private"}}}}}}}}}}},"error":""}"#,
+        );
         let res = aleo_parse_record(record_text);
         println!("res {}", res);
         assert_eq!(except, res);
@@ -1430,8 +1445,12 @@ mod tests {
     #[test]
     fn test_aleo_match_record_name() {
         let plaintext = String::from("{\n  owner: aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t.private,\n  data: 7695298536662493485104165609951371166429709890207755337137712968763917912722field.private,\n  edition: 0scalar.private,\n  _nonce: 3795843049584774052156625883016045597575638745783487044747931476329774607232group.public\n}");
-        let records = String::from(r#"{"NFT":"record NFT:\n    owner as address.private;\n    data as field.private;\n    edition as scalar.private;","NFT_ownership":"record NFT_ownership:\n    owner as address.private;\n    nft_owner as address.private;\n    data as field.private;\n    edition as scalar.private;"}"#);
-        let structs = String::from(r#"{"BaseURI":"struct BaseURI:\n    data0 as u128;\n    data1 as u128;\n    data2 as u128;\n    data3 as u128;","ResolverIndex":"struct ResolverIndex:\n    name as field;\n    category as u128;\n    version as u64;","Name":"struct Name:\n    name as [u128; 4u32];\n    parent as field;","NameStruct":"struct NameStruct:\n    name as [u128; 4u32];\n    parent as field;\n    resolver as u128;"}"#);
+        let records = String::from(
+            r#"{"NFT":"record NFT:\n    owner as address.private;\n    data as field.private;\n    edition as scalar.private;","NFT_ownership":"record NFT_ownership:\n    owner as address.private;\n    nft_owner as address.private;\n    data as field.private;\n    edition as scalar.private;"}"#,
+        );
+        let structs = String::from(
+            r#"{"BaseURI":"struct BaseURI:\n    data0 as u128;\n    data1 as u128;\n    data2 as u128;\n    data3 as u128;","ResolverIndex":"struct ResolverIndex:\n    name as field;\n    category as u128;\n    version as u64;","Name":"struct Name:\n    name as [u128; 4u32];\n    parent as field;","NameStruct":"struct NameStruct:\n    name as [u128; 4u32];\n    parent as field;\n    resolver as u128;"}"#,
+        );
         let res = aleo_match_record_name(plaintext, records, structs);
         let except = String::from(r#"{"data":"NFT","error":""}"#);
         assert_eq!(except, res);
@@ -1443,7 +1462,6 @@ mod tests {
         let chain_id = String::from("mainnet");
         let program_id = String::from("aleo_name_service_registry_v1.aleo");
 
-
         let res = aleo_get_program_info(rpc_url, chain_id, program_id);
         println!("res {}", res);
         let except = String::from(r#"{"data":"NFT","error":""}"#);
@@ -1452,11 +1470,17 @@ mod tests {
 
     #[test]
     fn test_balance_id() {
-        let address = String::from("aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t");
-        let token_id = String::from("7256611128845787327915514673706878554991764894124833271035508826370970880865field");
+        let address =
+            String::from("aleo1xs53pjftr8vst9ev2drwdu0kyyj2f4fxx93j3n30hfr8dqjnwq8qyvka7t");
+        let token_id = String::from(
+            "7256611128845787327915514673706878554991764894124833271035508826370970880865field",
+        );
         let str_id = format!("{{token: {}, user: {}}}", token_id, address);
         let id = aleo_hash_bhp256(str_id);
         println!("res {}", id);
-        assert_eq!(id.to_string(), "1883796586130720708904835108018912833399065797923770589550083011607438845009field");
+        assert_eq!(
+            id.to_string(),
+            "1883796586130720708904835108018912833399065797923770589550083011607438845009field"
+        );
     }
 }
