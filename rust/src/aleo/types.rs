@@ -1,48 +1,42 @@
-pub use aleo_rust::{
-  Address,
-  AleoV0,
-  AleoTestnetV0,
-  BlockMemory,
-  Ciphertext,
-  Encryptor,
-  Identifier,
-  Plaintext,
-  PrivateKey,
-  Process,
-  Program,
-  ProgramID,
-  ProgramOwner,
-  ProvingKey,
-  Query,
-  Record,
-  RecordType,
-  Response,
-  Signature,
-  TestnetV0,
-  MainnetV0,
-  Transaction,
-  VerifyingKey,
-  ViewKey,
-  VM,
-  Value,
-  ProgramManager,
-  Credits,
-  AleoAPIClient,
-  Environment,
-  FromBytes,
-  PrimeField,
-  FromFields,
-  ToField,
-  ToBytes,
-  ToBits,
-  TransferType,
-  IndexMap,
-  Entry,
-  EntryType,
-  Network,
-  PlaintextType,
-  StructType,
+pub use snarkvm_console::{
+    account::{Address, PrivateKey, Signature, ViewKey},
+    network::{Environment, MainnetV0, TestnetV0},
+    prelude::{FromBytes, FromFields, ToBytes, ToField, Uniform},
+    program::{
+        Ciphertext, Entry, EntryType, Identifier, Literal, Locator, Network, OutputID, Plaintext,
+        PlaintextType, ProgramID, ProgramOwner, Record, RecordType, Response, StructType, Value,
+        ValueType,
+    },
+    types::Field,
 };
+
+pub use snarkvm_circuit_network::{Aleo, AleoTestnetV0, AleoV0};
+
+pub use snarkvm_ledger_store::{
+    helpers::memory::{BlockMemory, ConsensusMemory},
+    BlockStore, ConsensusStore,
+};
+
+pub use snarkvm_ledger_query::Query;
+
+pub use snarkvm_synthesizer::{
+    prelude::{
+        cost_in_microcredits_v1, cost_in_microcredits_v2, deployment_cost, execution_cost_v1,
+        execution_cost_v2,
+    },
+    snark::{Proof, ProvingKey, VerifyingKey},
+    Process, Program, Trace, VM,
+};
+
+pub use snarkvm_ledger_block::{Block, Deployment, Execution, Transaction};
+pub use snarkvm_utilities::bits::ToBits;
+pub use snarkvm_algorithms::snark::varuna::VarunaVersion;
+
+pub use indexmap::{IndexMap, IndexSet};
+
+pub use snarkvm_fields::{PrimeField};
+
+pub use aleo_rust::{AleoAPIClient, TransferType, Credits};
 
 use serde::Serialize;
 
@@ -79,7 +73,6 @@ pub type ResponseNative = Response<CurrentNetwork>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
 pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;
 pub type ValueNative = Value<CurrentNetwork>;
-pub type ProgramManagerNative = ProgramManager<CurrentNetwork>;
 pub type APIClient = AleoAPIClient<CurrentNetwork>;
 
 pub type RecordData = IndexMap<Identifier<CurrentNetwork>, Entry<CurrentNetwork, PlaintextNative>>;
