@@ -444,7 +444,7 @@ export! {
         println!("start prove_execution");
 
         let execution = trace
-            .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V1, &mut StdRng::from_entropy())
+            .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string());
         if let Err(error) = execution {
             return serialize_aleo_error(&error);
@@ -563,18 +563,18 @@ export! {
                 return serialize_aleo_error(&error);
             }
             println!("start prove_fee");
-            let final_fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V1,&mut StdRng::from_entropy()).map_err(|e|e.to_string());
+            let final_fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2,&mut StdRng::from_entropy()).map_err(|e|e.to_string());
             if let Err(error) = final_fee {
                 return serialize_aleo_error(&error);
             }
             let final_fee = final_fee.unwrap();
             println!("start verify_fee");
-            let res = process.verify_fee(VarunaVersion::V1,&final_fee, execution_id).map_err(|e| e.to_string());
+            let res = process.verify_fee(VarunaVersion::V2,&final_fee, execution_id).map_err(|e| e.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
             println!("start verify_execution");
-            let res = process.verify_execution(VarunaVersion::V1,&execution).map_err(|err| err.to_string());
+            let res = process.verify_execution(VarunaVersion::V2,&execution).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -594,7 +594,7 @@ export! {
             }).to_string()
         } else {
             println!("start verify_execution");
-            let res = process.verify_execution(VarunaVersion::V1,&execution).map_err(|err| err.to_string());
+            let res = process.verify_execution(VarunaVersion::V2,&execution).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
