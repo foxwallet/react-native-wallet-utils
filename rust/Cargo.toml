@@ -3,6 +3,7 @@ name = "core"
 version = "0.0.0"
 authors = ["foxwallet <dev@foxwallet.com>"]
 edition = "2018"
+resolver = "2"
 
 [dependencies]
 anyhow = "1.0"
@@ -15,7 +16,7 @@ ironfish_rust = { path = "../fox-ironfish/ironfish-rust" }
 hex = "0.4.3"
 serde = { version = "1.0.195", features = ["derive"] }
 serde_json = "1.0"
-subtle = "2.4"
+subtle = "^2.5"
 openssl = { version = "0.10", features = ["vendored"] }
 scrypt = { version = "0.2", default-features = false }
 
