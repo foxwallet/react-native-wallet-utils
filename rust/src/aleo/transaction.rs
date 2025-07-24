@@ -23,6 +23,8 @@ use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::str::FromStr;
 use std::time::Instant;
+use snarkvm_console::network::ConsensusVersion;
+use snarkvm_synthesizer::prelude::InclusionVersion;
 
 export! {
     @Java_com_foxwallet_core_WalletCoreModule_aleoDeserializeCreditsRecordInternal
@@ -139,8 +141,16 @@ export! {
             return serialize_aleo_error(&error);
             }
             let record_identifier = record_identifier.unwrap();
+        
+
+            let view_key = view_key.to_field().map_err(|e| e.to_string());
+            if let Err(error) = view_key {
+              return serialize_aleo_error(&error);
+            }
+            let view_key_as_field = view_key.unwrap();
+
             let commitment = decrypt_res
-                .to_commitment(&parsed_program_id, &record_identifier)
+                .to_commitment(&parsed_program_id, &record_identifier, &view_key_as_field)
                 .map_err(|_| "A commitment for this record and program could not be computed".to_string());
             if let Err(error) = commitment {
             return serialize_aleo_error(&error);
@@ -436,7 +446,7 @@ export! {
 
         let (_, mut trace) = result.unwrap();
         let query = QueryNative::from(&rpc_url);
-        let result = trace.prepare(query).map_err(|err| err.to_string());
+        let result = trace.prepare(& query).map_err(|err| err.to_string());
         if let Err(error) = result {
             return serialize_aleo_error(&error);
         }
@@ -558,7 +568,7 @@ export! {
             }
             let (_, mut trace) = res.unwrap();
             let query = QueryNative::from(&rpc_url);
-            let res = trace.prepare(query).map_err(|err| err.to_string());
+            let res = trace.prepare(& query).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -569,12 +579,12 @@ export! {
             }
             let final_fee = final_fee.unwrap();
             println!("start verify_fee");
-            let res = process.verify_fee(VarunaVersion::V2,&final_fee, execution_id).map_err(|e| e.to_string());
+            let res = process.verify_fee(ConsensusVersion::V8,VarunaVersion::V2, InclusionVersion::V1, &final_fee, execution_id).map_err(|e| e.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
             println!("start verify_execution");
-            let res = process.verify_execution(VarunaVersion::V2,&execution).map_err(|err| err.to_string());
+            let res = process.verify_execution(ConsensusVersion::V8,VarunaVersion::V2, InclusionVersion::V1, &execution).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -594,7 +604,7 @@ export! {
             }).to_string()
         } else {
             println!("start verify_execution");
-            let res = process.verify_execution(VarunaVersion::V2,&execution).map_err(|err| err.to_string());
+            let res = process.verify_execution(ConsensusVersion::V8,VarunaVersion::V2, InclusionVersion::V1,&execution).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }

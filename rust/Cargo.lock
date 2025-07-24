@@ -54,6 +54,7 @@ dependencies = [
 name = "aleo-rust"
 version = "0.6.8"
 dependencies = [
+ "aleo-std",
  "anyhow",
  "clap",
  "getrandom 0.2.16",
