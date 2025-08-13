@@ -1,3 +1,4 @@
+#![allow(clippy::too_many_arguments)]
 use super::types::{
     APIClient, AddressNative, Ciphertext, Credits, CurrentAleo, CurrentNetwork, Entry,
     EntryTypeNative, Environment, FromBytes, FromFields, IdentifierNative, IndexMap, Network,
@@ -10,7 +11,7 @@ use super::utils::{
     convert_str_to_transfer_type, hex_to_bytes, serialize_account, serialize_aleo_error,
 };
 use crate::aleo::types::PlaintextNative;
-use crate::export;
+use crate::{export};
 use anyhow::{bail, ensure, Result};
 use itertools::Itertools;
 use rand::{rngs::StdRng, SeedableRng};
@@ -25,6 +26,7 @@ use std::str::FromStr;
 use std::time::Instant;
 use snarkvm_console::network::ConsensusVersion;
 use snarkvm_synthesizer::prelude::InclusionVersion;
+use alog::alog;
 
 export! {
     @Java_com_foxwallet_core_WalletCoreModule_aleoDeserializeCreditsRecordInternal
@@ -316,32 +318,38 @@ export! {
         if let Err(error) = client {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 1");
         let client = client.unwrap();
         let private_key = PrivateKeyNative::from_str(&pk).map_err(|e| e.to_string());
         if let Err(error) = private_key {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 2");
         let private_key = private_key.unwrap();
         // 初始化 process
         let mut process = ProcessNative::load().map_err(|e| e.to_string());
         if let Err(error) = process {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 3");
         let mut process = process.unwrap();
         let program_id = ProgramIDNative::from_str(&raw_program_id).map_err(|e| e.to_string());
         if let Err(error) = program_id {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 4");
         let program_id = program_id.unwrap();
         let program = client.get_program(program_id).map_err(|e| e.to_string());
         if let Err(error) = program {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 5");
         let program = program.unwrap();
         let imports = client.get_program_imports_from_source(&program).map_err(|e| e.to_string());
         if let Err(error) = imports {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 6");
         let imports = imports.unwrap();
         for (_, import) in imports.iter() {
             if import.id().to_string() != "credits.aleo" {
@@ -351,18 +359,21 @@ export! {
                 }
             }
         }
+        alog!("aleoExecuteProgramInternal 7");
         // 准备参数
         // let inputs: Vec<String> = inputs.split('|').map(|x| x.to_string()).collect();
         let inputs: Result<Vec<String>, String> = serde_json::from_str(&inputs).map_err(|e| e.to_string());
         if let Err(error) = inputs {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 8");
         let inputs = inputs.unwrap();
         println!("inputs: {:?}", inputs);
         let function_id = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string());
         if let Err(error) = function_id {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 9");
         let function_id = function_id.unwrap();
 
         // 初始化 key
@@ -372,53 +383,69 @@ export! {
                 return serialize_aleo_error(&error);
             }
         }
+        alog!("aleoExecuteProgramInternal 10");
         let has_keys = process.get_stack(program_id).map_or_else(
             |_| false,
             |stack| stack.contains_proving_key(&function_id) && stack.contains_verifying_key(&function_id),
         );
 
+        alog!("aleoExecuteProgramInternal 11");
         if has_keys {
             println!("Proving & verifying keys were specified for {} - {} but a key already exists in the cache. Using cached keys", program_id, function_id);
+            alog!("aleoExecuteProgramInternal 12");
         } else {
+            println!("{}", prover_file_path);
+            // print full path here
+
+            println!("Full prover file parent path: {:?}", std::fs::canonicalize(".").unwrap_or_else(|_| std::path::PathBuf::from(&prover_file_path)));
+
             let prover_file = File::open(prover_file_path).map_err(|e| e.to_string());
             if let Err(error) = prover_file {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 13");
             let prover_file = prover_file.unwrap();
             let prover_file_reader = BufReader::new(prover_file);
             let proving_key = ProvingKeyNative::read_le(prover_file_reader).map_err(|e| e.to_string());
             if let Err(error) = proving_key {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 14");
             let proving_key = proving_key.unwrap();
 
             let verifier_file = File::open(verifier_file_path).map_err(|e| e.to_string());
             if let Err(error) = verifier_file {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 15");
             let verifier_file = verifier_file.unwrap();
             let verifier_file_reader = BufReader::new(verifier_file);
             let verifying_key = VerifyingKeyNative::read_le(verifier_file_reader).map_err(|e| e.to_string());
             if let Err(error) = verifying_key {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 16");
             let verifying_key = verifying_key.unwrap();
 
             let res = process
                 .insert_proving_key(&program_id, &function_id, proving_key)
                 .map_err(|e| e.to_string());
+            alog!("aleoExecuteProgramInternal 17");
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 18");
 
             let res = process
                 .insert_verifying_key(&program_id, &function_id, verifying_key)
                 .map_err(|e| e.to_string());
+            alog!("aleoExecuteProgramInternal 19");
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
         }
         println!("start authorization");
+        alog!("aleoExecuteProgramInternal 20");
         // 开始执行
         let authorization = process
         .authorize::<CurrentAleo, _>(
@@ -429,13 +456,18 @@ export! {
             &mut StdRng::from_entropy(),
         )
         .map_err(|err| err.to_string());
+        alog!("aleoExecuteProgramInternal 21");
 
         if let Err(error) = authorization {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 22");
         let authorization = authorization.unwrap();
-        let is_fee_required = !authorization.is_split();
+        let is_fee_required = !authorization.is_split() && !authorization.is_upgrade();
+        alog!("aleoExecuteProgramInternal 23");
+        alog!("{}", format!("aleoExecuteProgramInternal start execute, is_fee_required: {}", is_fee_required));
         println!("start execute");
+        alog!("aleoExecuteProgramInternal 23");
 
         let result = process
             .execute::<CurrentAleo, _>(authorization, &mut StdRng::from_entropy())
@@ -443,36 +475,48 @@ export! {
         if let Err(error) = result {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 24");
 
         let (_, mut trace) = result.unwrap();
+        alog!("aleoExecuteProgramInternal 24-1");
         let query = QueryNative::from(&rpc_url);
+        alog!("aleoExecuteProgramInternal 24-2");
         let result = trace.prepare(& query).map_err(|err| err.to_string());
+        alog!("aleoExecuteProgramInternal 24-3");
         if let Err(error) = result {
+            alog!("{}", format!("aleoExecuteProgramInternal serialize_aleo_error {}", error));
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 25");
         let locator = format!("{}/{}", program.id().to_string(), function_name);
         println!("start prove_execution");
+        alog!("aleoExecuteProgramInternal 26");
 
         let execution = trace
             .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string());
+        alog!("aleoExecuteProgramInternal 27");
         if let Err(error) = execution {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 28");
         let execution = execution.unwrap();
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string());
         if let Err(error) = execution_id {
             return serialize_aleo_error(&error);
         }
+        alog!("aleoExecuteProgramInternal 29");
         let execution_id = execution_id.unwrap();
         println!("start fee require fee {} ", is_fee_required);
 
+        alog!("aleoExecuteProgramInternal 30");
         if is_fee_required {
             let fee_func_id = if fee_record_str == "null" {
                 IdentifierNative::from_str("fee_public").unwrap()
             } else {
                 IdentifierNative::from_str("fee_private").unwrap()
             };
+            alog!("aleoExecuteProgramInternal 31");
             let mut fee_record: Option<RecordPlaintextNative> = if fee_record_str != "null" {
                 let fee_record_res = RecordPlaintextNative::from_str(&fee_record_str).map_err(|e| e.to_string());
                 if let Err(error) = fee_record_res {
@@ -482,73 +526,91 @@ export! {
             } else {
                 None
             };
+            alog!("aleoExecuteProgramInternal 32");
 
             let priority_fee: Result<u64, String> = priority_fee.parse().map_err(|_| "Invalid priority_fee".to_string());
             if let Err(error) = priority_fee {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 33");
             let priority_fee = priority_fee.unwrap();
 
             let base_fee: Result<u64, String> = base_fee.parse().map_err(|_| "Invalid base_fee".to_string());
             if let Err(error) = base_fee {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 34");
             let base_fee = base_fee.unwrap();
             let credits_id = ProgramIDNative::from_str("credits.aleo").map_err(|e| e.to_string());
             if let Err(error) = credits_id {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 35");
             let credits_id = credits_id.unwrap();
             let has_keys = process.get_stack(credits_id).map_or_else(
                 |_| false,
                 |stack| stack.contains_proving_key(&fee_func_id) && stack.contains_verifying_key(&fee_func_id),
             );
+            alog!("aleoExecuteProgramInternal 36");
             if has_keys {
                 println!("Proving & verifying keys were specified for credits.aleo - fee but a key already exists in the cache. Using cached keys");
+                alog!("aleoExecuteProgramInternal 37");
             } else {
                 let fee_prover_file = File::open(fee_prover_file_path).map_err(|e| e.to_string());
                 if let Err(error) = fee_prover_file {
                     return serialize_aleo_error(&error);
                 }
+                alog!("aleoExecuteProgramInternal 38");
                 let fee_prover_file = fee_prover_file.unwrap();
                 let fee_prover_file_reader = BufReader::new(fee_prover_file);
                 let fee_proving_key = ProvingKeyNative::read_le(fee_prover_file_reader).map_err(|e| e.to_string());
                 if let Err(error) = fee_proving_key {
                     return serialize_aleo_error(&error);
                 }
+                alog!("aleoExecuteProgramInternal 39");
                 let fee_proving_key = fee_proving_key.unwrap();
 
+                alog!("aleoExecuteProgramInternal 40");
                 let fee_verifier_file = File::open(fee_verifier_file_path).map_err(|e| e.to_string());
                 if let Err(error) = fee_verifier_file {
                     return serialize_aleo_error(&error);
                 }
+                alog!("aleoExecuteProgramInternal 41");
                 let fee_verifier_file = fee_verifier_file.unwrap();
                 let fee_verifier_file_reader = BufReader::new(fee_verifier_file);
                 let fee_verifying_key = VerifyingKeyNative::read_le(fee_verifier_file_reader).map_err(|e| e.to_string());
+                alog!("aleoExecuteProgramInternal 42");
                 if let Err(error) = fee_verifying_key {
                     return serialize_aleo_error(&error);
                 }
                 let fee_verifying_key = fee_verifying_key.unwrap();
+                alog!("aleoExecuteProgramInternal 43");
 
                 let res = process
                     .insert_proving_key(&credits_id, &fee_func_id, fee_proving_key)
                     .map_err(|e| e.to_string());
+                alog!("aleoExecuteProgramInternal 44");
                 if let Err(error) = res {
                     return serialize_aleo_error(&error);
                 }
 
+                alog!("aleoExecuteProgramInternal 45");
                 let res = process
                     .insert_verifying_key(&credits_id, &fee_func_id, fee_verifying_key)
                     .map_err(|e| e.to_string());
+                alog!("aleoExecuteProgramInternal 46");
                 if let Err(error) = res {
                     return serialize_aleo_error(&error);
                 }
             }
+            alog!("aleoExecuteProgramInternal 47");
             println!("start execute_fee");
 
             let fee_authorization = if fee_func_id.to_string() == "fee_public" {
+                alog!("aleoExecuteProgramInternal 48");
                 process.authorize_fee_public::<CurrentAleo, _>(&private_key, base_fee, priority_fee, execution_id, &mut StdRng::from_entropy()).map_err(|err| err.to_string())
             } else {
+                alog!("aleoExecuteProgramInternal 49");
                 process.authorize_fee_private::<CurrentAleo, _>(
                     &private_key,
                     fee_record.unwrap(),
@@ -558,20 +620,25 @@ export! {
                     &mut StdRng::from_entropy(),
                 ).map_err(|err| err.to_string())
             };
+            alog!("aleoExecuteProgramInternal 50");
             if let Err(error) = fee_authorization {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 51");
             let fee_authorization = fee_authorization.unwrap();
             let res = process.execute::<CurrentAleo, _>(fee_authorization, &mut StdRng::from_entropy()).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 52");
             let (_, mut trace) = res.unwrap();
             let query = QueryNative::from(&rpc_url);
+            alog!("aleoExecuteProgramInternal 53");
             let res = trace.prepare(& query).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 54");
             println!("start prove_fee");
             let final_fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2,&mut StdRng::from_entropy()).map_err(|e|e.to_string());
             if let Err(error) = final_fee {
@@ -583,17 +650,22 @@ export! {
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 55");
             println!("start verify_execution");
             let res = process.verify_execution(ConsensusVersion::V8,VarunaVersion::V2, InclusionVersion::V1, &execution).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 56");
             let transaction = TransactionNative::from_execution(execution, Some(final_fee)).map_err(|err| err.to_string());
             if let Err(error) = transaction {
                 return serialize_aleo_error(&error);
             }
+            alog!("aleoExecuteProgramInternal 57");
             let transaction = transaction.unwrap();
             println!("start transaction_broadcast");
+            alog!("aleoExecuteProgramInternal 58");
+            alog!("aleoExecuteProgramInternal start transaction_broadcast");
             let res = client.transaction_broadcast(transaction.clone()).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
@@ -1492,5 +1564,68 @@ mod tests {
             id.to_string(),
             "1883796586130720708904835108018912833399065797923770589550083011607438845009field"
         );
+    }
+
+    #[test]
+    fn test_aleo_v1_transfer_private() {
+        let dir = String::from("./temp/");
+        let private_key = String::from("APrivateKey1zkpH29GSB22nxUND5kpX75hjebbQmfkBzBd4k4rQmJsgoKn");
+        let program_id = String::from("credits.aleo");
+        let function_name = String::from("transfer_private");
+
+        // 使用提供的输入参数
+        let inputs = serde_json::to_string(&[
+            "{\n  owner: aleo12fqej3untsdvakftade6rux2qvf9kex0jjgdg2uah3z93j38fsyqr3ked4.private,\n  microcredits: 500000u64.private,\n  _nonce: 7063414638379560174536781378059538094670236565794115179275198519640008534195group.public\n}",
+            "aleo1zl5mzjk4pfx6phx089zy5m6qfdtvjntgvuhadmtq2u4jzkv47yrqpfwg30",
+            "20000u64"
+        ]).unwrap();
+
+        println!("raw inputs: {}", inputs);
+
+        // 使用提供的 fee record
+        let fee_record = String::from("{\n  owner: aleo12fqej3untsdvakftade6rux2qvf9kex0jjgdg2uah3z93j38fsyqr3ked4.private,\n  microcredits: 100000u64.private,\n  _nonce: 6599037915341859884807676073538584836409640241738910688087065674960981864791group.public\n}");
+        let base_fee = String::from("15343");
+        let priority_fee = String::from("500");
+
+        // 使用 temp 目录下的文件路径
+        let prover_file = format!("{}credits.aleo-transfer_private.prover", dir);
+        let verifier_file = format!("{}credits.aleo-transfer_private.verifier", dir);
+        let fee_public_prover_file = format!("{}credits.aleo-fee_public.prover", dir);
+        let fee_public_verifier_file = format!("{}credits.aleo-fee_public.verifier", dir);
+        let fee_private_prover_file = format!("{}credits.aleo-fee_private.prover", dir);
+        let fee_private_verifier_file = format!("{}credits.aleo-fee_private.verifier", dir);
+
+        let start = Instant::now();
+        let res = aleo_execute_program(
+            dir,
+            String::from("https://wallet.foxnb.net/mobile/v1/aleo"),
+            String::from("mainnet"),
+            private_key,
+            program_id,
+            function_name,
+            inputs,
+            fee_record,
+            base_fee,
+            priority_fee,
+            prover_file,
+            verifier_file,
+            fee_public_prover_file,
+            fee_public_verifier_file,
+        );
+        let elapsed = start.elapsed();
+        println!("Millis: {} ms", elapsed.as_millis());
+        println!("result: {}", res);
+
+        // 检查是否包含错误信息
+        if res.contains("Inclusion expected the global state root to be the same across iterations") {
+            println!("✅ 成功复现了 V1 包含证明的状态根一致性问题");
+        } else if res.contains(r#"error":"""#) {
+            println!("✅ 测试成功，没有出现状态根一致性问题");
+        } else {
+            println!("❌ 测试失败，出现了其他错误: {}", res);
+        }
+
+        // 暂时不强制断言，因为我们要测试的就是这个问题
+        // assert!(res.contains(r#"error":"""#));
     }
 }

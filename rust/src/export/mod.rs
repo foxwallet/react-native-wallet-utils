@@ -41,7 +41,7 @@ macro_rules! export {
 
             $(
                 #[no_mangle]
-                pub extern fn $jname<'jni>(
+                pub extern "C" fn $jname<'jni>(
                     env: JNIEnv<'jni>,
                     _: JClass,
                     $( $a: <$t as Argument<'jni>>::Ext ),*

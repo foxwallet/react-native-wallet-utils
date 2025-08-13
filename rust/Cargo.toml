@@ -20,6 +20,9 @@ subtle = "^2.5"
 openssl = { version = "0.10", features = ["vendored"] }
 scrypt = { version = "0.2", default-features = false }
 
+[dependencies.alog]
+path = "../fox-alog"
+
 [dependencies.aleo-rust]
 path = "../fox-aleo-rust/rust"
 
