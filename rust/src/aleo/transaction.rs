@@ -17,7 +17,6 @@ use itertools::Itertools;
 use rand::{rngs::StdRng, SeedableRng};
 use serde_json::{json, to_string, Value};
 use snarkvm_parameters::macros::set_dir;
-use snarkvm_synthesizer::program::StackKeys;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::fs::File;
@@ -26,6 +25,7 @@ use std::str::FromStr;
 use std::time::Instant;
 use snarkvm_console::network::ConsensusVersion;
 use snarkvm_synthesizer::prelude::InclusionVersion;
+use snarkvm_synthesizer::program::StackTrait;
 use alog::alog;
 
 export! {
@@ -479,7 +479,7 @@ export! {
 
         let (_, mut trace) = result.unwrap();
         alog!("aleoExecuteProgramInternal 24-1");
-        let query = QueryNative::from(&rpc_url);
+        let query = QueryNative::from_str(&rpc_url).unwrap();
         alog!("aleoExecuteProgramInternal 24-2");
         let result = trace.prepare(& query).map_err(|err| err.to_string());
         alog!("aleoExecuteProgramInternal 24-3");
@@ -492,9 +492,22 @@ export! {
         println!("start prove_execution");
         alog!("aleoExecuteProgramInternal 26");
 
-        let execution = trace
+        let result = std::panic::catch_unwind(|| {
+        trace
             .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut StdRng::from_entropy())
-            .map_err(|e| e.to_string());
+            .map_err(|e| e.to_string())
+        });
+        if result.is_err() {
+            return json!({
+                "data": "",
+                "error": "prove_execution panic",
+            }).to_string();
+        }
+        // 后续正常执行
+        let execution = result.unwrap();
+        // let execution = trace
+        //     .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut StdRng::from_entropy())
+        //     .map_err(|e| e.to_string());
         alog!("aleoExecuteProgramInternal 27");
         if let Err(error) = execution {
             return serialize_aleo_error(&error);
@@ -632,7 +645,7 @@ export! {
             }
             alog!("aleoExecuteProgramInternal 52");
             let (_, mut trace) = res.unwrap();
-            let query = QueryNative::from(&rpc_url);
+            let query = QueryNative::from_str(&rpc_url).unwrap();
             alog!("aleoExecuteProgramInternal 53");
             let res = trace.prepare(& query).map_err(|err| err.to_string());
             if let Err(error) = res {

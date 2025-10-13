@@ -33,10 +33,11 @@ if [ -z ${NDK_HOME+x} ];
     printf 'from https://developer.android.com/ndk/downloads or with sdkmanager'
     exit 1
   else
-    printf "Building Andriod targets...";
+    printf "Building Android targets...";
 fi
 
-printf "Building ARM64 Andriod targets...";
+printf "Building ARM64 Android targets...";
+RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384" \
 CC_aarch64_linux_android="${ANDROID_PREBUILD_BIN}/aarch64-linux-android${API_LEVEL}-clang" \
 CXX_aarch64_linux_android="${ANDROID_PREBUILD_BIN}/aarch64-linux-android${API_LEVEL}-clang++" \
 CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="${ANDROID_PREBUILD_BIN}/aarch64-linux-android${API_LEVEL}-clang" \
@@ -44,7 +45,8 @@ AR_aarch64_linux_android="${ANDROID_PREBUILD_BIN}/llvm-ar" \
 RANLIB="${ANDROID_PREBUILD_BIN}/llvm-ranlib" \
   cargo +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target aarch64-linux-android --release
 
-printf "Building ARMv7 Andriod targets...";
+printf "Building ARMv7 Android targets...";
+RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384" \
 CC_armv7_linux_androideabi="${ANDROID_PREBUILD_BIN}/armv7a-linux-androideabi${API_LEVEL}-clang" \
 CXX_armv7_linux_androideabi="${ANDROID_PREBUILD_BIN}/armv7a-linux-androideabi${API_LEVEL}-clang++" \
 CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER="${ANDROID_PREBUILD_BIN}/armv7a-linux-androideabi${API_LEVEL}-clang" \
@@ -52,7 +54,8 @@ AR_armv7_linux_androideabi="${ANDROID_PREBUILD_BIN}/llvm-ar" \
 RANLIB="${ANDROID_PREBUILD_BIN}/llvm-ranlib"  \
   cargo +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target armv7-linux-androideabi --release
 
-printf "Building 32-bit x86  Andriod targets...";
+printf "Building 32-bit x86  Android targets...";
+RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384" \
 CC_i686_linux_android="${ANDROID_PREBUILD_BIN}/i686-linux-android${API_LEVEL}-clang" \
 CXX_i686_linux_android="${ANDROID_PREBUILD_BIN}/i686-linux-android${API_LEVEL}-clang++" \
 CARGO_TARGET_I686_LINUX_ANDROID_LINKER="${ANDROID_PREBUILD_BIN}/i686-linux-android${API_LEVEL}-clang" \
@@ -60,7 +63,8 @@ AR_i686_linux_android="${ANDROID_PREBUILD_BIN}/llvm-ar" \
 RANLIB="${ANDROID_PREBUILD_BIN}/llvm-ranlib" \
   cargo  +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target i686-linux-android --release
 
-printf "Building 64-bit x86  Andriod targets...";
+printf "Building 64-bit x86  Android targets...";
+RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384" \
 CC_x86_64_linux_android="${ANDROID_PREBUILD_BIN}/x86_64-linux-android${API_LEVEL}-clang" \
 CXX_x86_64_linux_android="${ANDROID_PREBUILD_BIN}/x86_64-linux-android${API_LEVEL}-clang++" \
 CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER="${ANDROID_PREBUILD_BIN}/x86_64-linux-android${API_LEVEL}-clang" \
