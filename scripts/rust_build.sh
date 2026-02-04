@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 source ./scripts/variables.sh
 
 # Build iOS
@@ -10,7 +12,7 @@ printf "Building iOS release targets...";
 for i in "${IOS_ARCHS[@]}";
   do
     rustup target add "$i";
-    cargo +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target "$i" --release --no-default-features
+    cargo +nightly rustc -Z build-std=std,panic_abort --crate-type staticlib --target "$i" --release --no-default-features --lib
 done
 
 lipo -create -output "../ios/release/lib${LIB_NAME}.a" target/aarch64-apple-ios/release/libcore.a
@@ -20,7 +22,7 @@ printf "Building iOS debug targets...";
 for i in "${IOS_ARCHS_DEBUG[@]}";
   do
     rustup target add "$i";
-    cargo +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target "$i" --release --no-default-features
+    cargo +nightly rustc -Z build-std=std,panic_abort --crate-type staticlib --target "$i" --release --no-default-features --lib
 done
 
 lipo -create -output "../ios/debug/lib${LIB_NAME}.a" target/x86_64-apple-ios/release/libcore.a target/aarch64-apple-ios/release/libcore.a
@@ -43,7 +45,7 @@ CXX_aarch64_linux_android="${ANDROID_PREBUILD_BIN}/aarch64-linux-android${API_LE
 CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="${ANDROID_PREBUILD_BIN}/aarch64-linux-android${API_LEVEL}-clang" \
 AR_aarch64_linux_android="${ANDROID_PREBUILD_BIN}/llvm-ar" \
 RANLIB="${ANDROID_PREBUILD_BIN}/llvm-ranlib" \
-  cargo +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target aarch64-linux-android --release
+  cargo +nightly build -Z build-std=std,panic_abort --target aarch64-linux-android --release
 
 printf "Building ARMv7 Android targets...";
 RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384" \
@@ -52,7 +54,7 @@ CXX_armv7_linux_androideabi="${ANDROID_PREBUILD_BIN}/armv7a-linux-androideabi${A
 CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER="${ANDROID_PREBUILD_BIN}/armv7a-linux-androideabi${API_LEVEL}-clang" \
 AR_armv7_linux_androideabi="${ANDROID_PREBUILD_BIN}/llvm-ar" \
 RANLIB="${ANDROID_PREBUILD_BIN}/llvm-ranlib"  \
-  cargo +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target armv7-linux-androideabi --release
+  cargo +nightly build -Z build-std=std,panic_abort --target armv7-linux-androideabi --release
 
 printf "Building 32-bit x86  Android targets...";
 RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384" \
@@ -61,7 +63,7 @@ CXX_i686_linux_android="${ANDROID_PREBUILD_BIN}/i686-linux-android${API_LEVEL}-c
 CARGO_TARGET_I686_LINUX_ANDROID_LINKER="${ANDROID_PREBUILD_BIN}/i686-linux-android${API_LEVEL}-clang" \
 AR_i686_linux_android="${ANDROID_PREBUILD_BIN}/llvm-ar" \
 RANLIB="${ANDROID_PREBUILD_BIN}/llvm-ranlib" \
-  cargo  +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target i686-linux-android --release
+  cargo  +nightly build -Z build-std=std,panic_abort --target i686-linux-android --release
 
 printf "Building 64-bit x86  Android targets...";
 RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384" \
@@ -70,11 +72,10 @@ CXX_x86_64_linux_android="${ANDROID_PREBUILD_BIN}/x86_64-linux-android${API_LEVE
 CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER="${ANDROID_PREBUILD_BIN}/x86_64-linux-android${API_LEVEL}-clang" \
 AR_x86_64_linux_android="${ANDROID_PREBUILD_BIN}/llvm-ar" \
 RANLIB="${ANDROID_PREBUILD_BIN}/llvm-ranlib" \
-  cargo  +nightly build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target x86_64-linux-android --release
+  cargo  +nightly build -Z build-std=std,panic_abort --target x86_64-linux-android --release
 
 for i in "${!ANDROID_ARCHS[@]}";
   do
     mkdir -p -v "../android/src/main/jniLibs/${ANDROID_FOLDER[$i]}"
     cp "./target/${ANDROID_ARCHS[$i]}/release/lib${LIB_NAME}.so" "../android/src/main/jniLibs/${ANDROID_FOLDER[$i]}/lib${LIB_NAME}.so"
 done
-
