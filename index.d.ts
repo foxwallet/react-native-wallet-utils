@@ -12,6 +12,8 @@ declare module '@foxwallet/react-native-wallet-utils' {
     export function aleoCreateAccountFromPrivateKeySync(pk: string): string;
     export function aleoIsValidAddress(address: string): Promise<string>;
     export function aleoIsValidAddressSync(address: string): string;
+    export function aleoMerkleTreeHashTwoElements(prefix: string, left: string, right: string): Promise<string>;
+    export function aleoMerkleTreeHashTwoElementsSync(prefix: string, left: string, right: string): string;
     export function aleoDecryptRecord(ciphertext: string, vk: string): Promise<string>;
     export function aleoDeserializeCreditsRecord(recordStr: string): Promise<string>;
     export function aleoSignMessage(pk: string, message: string): Promise<string>;

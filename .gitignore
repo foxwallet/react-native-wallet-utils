@@ -153,3 +153,5 @@ lint/tmp/
 rust/target
 rust/src/aleo_params*
 rust/src/credits_params
+/rust/temp/
+/fox-alog/target/

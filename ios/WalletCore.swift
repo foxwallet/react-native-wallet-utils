@@ -121,6 +121,18 @@ class WalletCore: NSObject {
    })
   }
 
+  @objc func aleoMerkleTreeHashTwoElements(_ prefix: String, left: String, right: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+   handle_error(
+     resolve: resolve,
+     reject: reject,
+     get_result: { aleo_merkle_tree_hash_two_elements($0, prefix, left, right) },
+     success: { (res: Optional<UnsafePointer<CChar>>) -> String in
+       let val = String(cString: res!)
+       core_destroy_string(res!)
+       return val
+   })
+  }
+
   @objc func aleoDeserializeCreditsRecord(_ recordStr: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
    handle_error(
      resolve: resolve,

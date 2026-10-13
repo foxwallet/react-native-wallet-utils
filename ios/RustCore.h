@@ -30,6 +30,8 @@ const char* aleo_create_account_from_seed(struct ExternError*, const char* seed)
 
 const char* aleo_is_valid_public_address(struct ExternError*, const char* address);
 
+const char* aleo_merkle_tree_hash_two_elements(struct ExternError*, const char* prefix, const char* left, const char* right);
+
 const char* aleo_view_key_to_address(struct ExternError*, const char* view_key);
 
 const char* aleo_deserialize_credits_record(struct ExternError*, const char* record_str);

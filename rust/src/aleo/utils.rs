@@ -38,6 +38,17 @@ pub fn serialize_account(pk: &PrivateKeyNative, address: &AddressNative, view_ke
 }
 
 
+/// Returns the REST query base URL including the API version.
+/// snarkVM 4.11.0 no longer inserts `v2` into REST query paths, so append it unless a version is already present.
+pub fn rest_query_url(rpc_url: &str) -> String {
+  let url = rpc_url.trim_end_matches('/');
+  if url.ends_with("/v1") || url.ends_with("/v2") {
+    url.to_string()
+  } else {
+    format!("{url}/v2")
+  }
+}
+
 pub fn serialize_aleo_error(err: &str) -> String {
   let content = format!("{:?}", err);
   let result = json!({

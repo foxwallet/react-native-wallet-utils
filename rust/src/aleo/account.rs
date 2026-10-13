@@ -3,7 +3,9 @@ use super::utils::{serialize_account, serialize_aleo_error, hex_to_bytes};
 use std::str::FromStr;
 use std::convert::TryFrom;
 use std::convert::TryInto;
-use super::types::{CurrentNetwork, PrivateKeyNative, AddressNative, ViewKeyNative, Environment, FromBytes, ToBytes, PrimeField};
+use super::types::{CurrentNetwork, PrivateKeyNative, AddressNative, ViewKeyNative, Environment, FromBytes, ToBytes, PrimeField, Field, PlaintextNative};
+use snarkvm_console::network::environment::traits::ToFields;
+use alog::alog;
 
 export! {
 	// generate new aleo account from private key
@@ -87,6 +89,81 @@ export! {
         let view_key = ViewKeyNative::from_str(&view_key).unwrap();
         let address = view_key.to_address();
         address.to_string()
+    }
+
+    @Java_com_foxwallet_core_WalletCoreModule_aleoMerkleTreeHashTwoElementsInternal
+    fn aleo_merkle_tree_hash_two_elements(prefix: String,left: String,right: String) -> String {
+        // if (!left || !right) {
+        //   throw new Error("Invalid inputs: elements cannot be empty");
+        // }
+        // const fields = [
+        //   Field.fromString(prefix),
+        //   Field.fromString(el1),
+        //   Field.fromString(el2),
+        // ];
+        // const arrayPlaintext = Plaintext.fromString(
+        //   `[${fields.map((f) => f.toString()).join(",")}]`
+        // );
+        //
+        // return (new Poseidon4()).hash(arrayPlaintext.toFields()).toString;
+
+        // Validate inputs are not empty, mirroring the JS check.
+        if left.is_empty() || right.is_empty() {
+            return serialize_aleo_error("Invalid inputs: elements cannot be empty");
+        }
+
+        // Parse the three inputs into `Field<CurrentNetwork>`, equivalent to `Field.fromString(...)`.
+        let prefix_field = Field::<CurrentNetwork>::from_str(&prefix).map_err(|e| e.to_string());
+        if let Err(error) = prefix_field {
+            return serialize_aleo_error(&error);
+        }
+        let prefix_field = prefix_field.unwrap();
+
+        let left_field = Field::<CurrentNetwork>::from_str(&left).map_err(|e| e.to_string());
+        if let Err(error) = left_field {
+            return serialize_aleo_error(&error);
+        }
+        let left_field = left_field.unwrap();
+
+        let right_field = Field::<CurrentNetwork>::from_str(&right).map_err(|e| e.to_string());
+        if let Err(error) = right_field {
+            return serialize_aleo_error(&error);
+        }
+        let right_field = right_field.unwrap();
+
+        // Convert fields to strings and join with commas, matching JS: fields.map((f) => f.toString()).join(",")
+        let field_strings: Vec<String> = vec![prefix_field, left_field, right_field]
+            .iter()
+            .map(|f| f.to_string())
+            .collect();
+        let array_string = format!("[{}]", field_strings.join(","));
+
+        alog!("MerkleTreeHashTwoElements {}", array_string);
+
+        // Parse the array string as Plaintext, matching JS: Plaintext.fromString(`[${fields.map(...).join(",")}]`)
+        let array_plaintext = PlaintextNative::from_str(&array_string).map_err(|e| e.to_string());
+        if let Err(error) = array_plaintext {
+            return serialize_aleo_error(&error);
+        }
+        let array_plaintext = array_plaintext.unwrap();
+
+        // Convert Plaintext to fields, matching JS: arrayPlaintext.toFields()
+        let fields = array_plaintext.to_fields().map_err(|e| e.to_string());
+        if let Err(error) = fields {
+            return serialize_aleo_error(&error);
+        }
+        let fields = fields.unwrap();
+
+        // Use Poseidon4 to hash the fields, matching JS: (new Poseidon4()).hash(arrayPlaintext.toFields())
+        let hash = <CurrentNetwork as snarkvm_console::network::Network>::hash_psd4(&fields)
+            .map_err(|e| e.to_string());
+        if let Err(error) = hash {
+            return serialize_aleo_error(&error);
+        }
+        let hash = hash.unwrap();
+
+        // On success, return the field hash as a string (matching `.toString()` in JS).
+        hash.to_string()
     }
 }
 

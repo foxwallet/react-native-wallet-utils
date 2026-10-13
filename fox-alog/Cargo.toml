@@ -1,0 +1,5 @@
+[package]
+name = "alog"
+version = "0.0.1"
+description = "log to android logcat"
+include = [ "Cargo.toml", "src" ]

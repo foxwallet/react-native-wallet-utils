@@ -127,6 +127,16 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void aleoMerkleTreeHashTwoElements(String prefix,String left,String right, Promise promise) {
+        promise.resolve(aleoMerkleTreeHashTwoElementsInternal(prefix, left, right));
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String aleoMerkleTreeHashTwoElementsSync(String prefix,String left,String right) {
+        return aleoMerkleTreeHashTwoElementsInternal(prefix, left, right);
+    }
+
+    @ReactMethod
     public void aleoDecryptRecord(String ciphertext, String vk, Promise promise) {
         promise.resolve(aleoDecryptRecordInternal(ciphertext, vk));
     }
@@ -186,6 +196,8 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
     private static native String aleoCreateAccountFromSeedInternal(String seed);
 
     private static native String aleoIsValidAddressInternal(String address);
+
+    private static native String aleoMerkleTreeHashTwoElementsInternal(String prefix,String left,String right);
 
     private static native String aleoDecryptRecordInternal(String ciphertext, String vk);
     private static native String aleoDeserializeCreditsRecordInternal(String recordStr);

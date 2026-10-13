@@ -6,6 +6,9 @@ API_LEVEL=30
 
 NDK_HOME=~/Library/Android/sdk/ndk/23.1.7779620
 
+# Nightly toolchain used for -Z build-std.
+NIGHTLY_TOOLCHAIN=nightly-2025-08-28-aarch64-apple-darwin
+
 ANDROID_ARCHS=(aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android)
 ANDROID_FOLDER=(arm64-v8a armeabi-v7a x86 x86_64)
 ANDROID_BIN_PREFIX=(aarch64-linux-android armv7a-linux-androideabi i686-linux-android x86_64-linux-android)
