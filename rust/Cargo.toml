@@ -59,7 +59,7 @@ path = "../fox-snarkvm/utilities"
 path = "../fox-snarkvm/parameters"
 
 [dependencies.rand]
-version = "0.8"
+version = "0.10"
 
 [dependencies.itertools]
 version = "0.11.0"

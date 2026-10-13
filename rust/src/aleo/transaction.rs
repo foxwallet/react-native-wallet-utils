@@ -14,7 +14,7 @@ use crate::aleo::types::PlaintextNative;
 use crate::{export};
 use anyhow::{bail, ensure, Result};
 use itertools::Itertools;
-use rand::{rngs::StdRng, SeedableRng};
+use rand::rngs::StdRng;
 use serde_json::{json, to_string, Value};
 use snarkvm_parameters::macros::set_dir;
 use std::convert::TryFrom;
@@ -183,7 +183,7 @@ export! {
           return serialize_aleo_error(&error);
         }
         let msg_bytes = msg_bytes.unwrap();
-        let res = SignatureNative::sign_bytes(&private_key, &msg_bytes, &mut StdRng::from_entropy()).map_err(|e| e.to_string());
+        let res = SignatureNative::sign_bytes(&private_key, &msg_bytes, &mut rand::make_rng::<StdRng>()).map_err(|e| e.to_string());
         if let Err(error) = res {
           return serialize_aleo_error(&error)
         }
@@ -213,11 +213,11 @@ export! {
           return serialize_aleo_error(&error);
         }
         let program = program.unwrap();
-        let mut process = ProcessNative::load().map_err(|e| e.to_string());
+        let process = ProcessNative::load().map_err(|e| e.to_string());
         if let Err(error) = process {
           return serialize_aleo_error(&error);
         }
-        let mut process = process.unwrap();
+        let process = process.unwrap();
         let function_id = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string());
         if let Err(error) = function_id {
           return serialize_aleo_error(&error);
@@ -230,21 +230,21 @@ export! {
         let imports = imports.unwrap();
         for (_, import) in imports.iter() {
             if import.id().to_string() != "credits.aleo" {
-                let res = process.add_program(import).map_err(|e| e.to_string());
+                let res = process.lock().add_program(import).map_err(|e| e.to_string());
                 if let Err(error) = res {
                     return serialize_aleo_error(&error);
                 }
             }
         }
         if &program_id.to_string() != "credits.aleo" {
-            let res = process.add_program(&program).map_err(|e| e.to_string());
+            let res = process.lock().add_program(&program).map_err(|e| e.to_string());
             if let Err(error) = res {
               return serialize_aleo_error(&error);
             }
         }
 
         let res = process
-            .synthesize_key::<CurrentAleo, _>(&program_id, &function_id, &mut StdRng::from_entropy())
+            .synthesize_key::<CurrentAleo, _>(&program_id, &function_id, &mut rand::make_rng::<StdRng>())
             .map_err(|e| e.to_string());
         if let Err(error) = res {
           return serialize_aleo_error(&error);
@@ -327,12 +327,12 @@ export! {
         alog!("aleoExecuteProgramInternal 2");
         let private_key = private_key.unwrap();
         // 初始化 process
-        let mut process = ProcessNative::load().map_err(|e| e.to_string());
+        let process = ProcessNative::load().map_err(|e| e.to_string());
         if let Err(error) = process {
             return serialize_aleo_error(&error);
         }
         alog!("aleoExecuteProgramInternal 3");
-        let mut process = process.unwrap();
+        let process = process.unwrap();
         let program_id = ProgramIDNative::from_str(&raw_program_id).map_err(|e| e.to_string());
         if let Err(error) = program_id {
             return serialize_aleo_error(&error);
@@ -353,7 +353,7 @@ export! {
         let imports = imports.unwrap();
         for (_, import) in imports.iter() {
             if import.id().to_string() != "credits.aleo" {
-                let res = process.add_program(import).map_err(|e| e.to_string());
+                let res = process.lock().add_program(import).map_err(|e| e.to_string());
                 if let Err(error) = res {
                     return serialize_aleo_error(&error);
                 }
@@ -378,7 +378,7 @@ export! {
 
         // 初始化 key
         if raw_program_id != "credits.aleo" {
-            let res = process.add_program(&program).map_err(|e| e.to_string());
+            let res = process.lock().add_program(&program).map_err(|e| e.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -453,7 +453,7 @@ export! {
             program_id,
             function_id,
             inputs.iter(),
-            &mut StdRng::from_entropy(),
+            &mut rand::make_rng::<StdRng>(),
         )
         .map_err(|err| err.to_string());
         alog!("aleoExecuteProgramInternal 21");
@@ -470,7 +470,7 @@ export! {
         alog!("aleoExecuteProgramInternal 23");
 
         let result = process
-            .execute::<CurrentAleo, _>(authorization, &mut StdRng::from_entropy())
+            .execute::<CurrentAleo, _>(authorization, &mut rand::make_rng::<StdRng>())
             .map_err(|err| err.to_string());
         if let Err(error) = result {
             return serialize_aleo_error(&error);
@@ -494,7 +494,7 @@ export! {
 
         let result = std::panic::catch_unwind(|| {
         trace
-            .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut StdRng::from_entropy())
+            .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut rand::make_rng::<StdRng>())
             .map_err(|e| e.to_string())
         });
         if result.is_err() {
@@ -506,7 +506,7 @@ export! {
         // 后续正常执行
         let execution = result.unwrap();
         // let execution = trace
-        //     .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut StdRng::from_entropy())
+        //     .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut rand::make_rng::<StdRng>())
         //     .map_err(|e| e.to_string());
         alog!("aleoExecuteProgramInternal 27");
         if let Err(error) = execution {
@@ -621,7 +621,7 @@ export! {
 
             let fee_authorization = if fee_func_id.to_string() == "fee_public" {
                 alog!("aleoExecuteProgramInternal 48");
-                process.authorize_fee_public::<CurrentAleo, _>(&private_key, base_fee, priority_fee, execution_id, &mut StdRng::from_entropy()).map_err(|err| err.to_string())
+                process.authorize_fee_public::<CurrentAleo, _>(&private_key, base_fee, priority_fee, execution_id, &mut rand::make_rng::<StdRng>()).map_err(|err| err.to_string())
             } else {
                 alog!("aleoExecuteProgramInternal 49");
                 process.authorize_fee_private::<CurrentAleo, _>(
@@ -630,7 +630,7 @@ export! {
                     base_fee,
                     priority_fee,
                     execution_id,
-                    &mut StdRng::from_entropy(),
+                    &mut rand::make_rng::<StdRng>(),
                 ).map_err(|err| err.to_string())
             };
             alog!("aleoExecuteProgramInternal 50");
@@ -639,7 +639,7 @@ export! {
             }
             alog!("aleoExecuteProgramInternal 51");
             let fee_authorization = fee_authorization.unwrap();
-            let res = process.execute::<CurrentAleo, _>(fee_authorization, &mut StdRng::from_entropy()).map_err(|err| err.to_string());
+            let res = process.execute::<CurrentAleo, _>(fee_authorization, &mut rand::make_rng::<StdRng>()).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -653,7 +653,7 @@ export! {
             }
             alog!("aleoExecuteProgramInternal 54");
             println!("start prove_fee");
-            let final_fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2,&mut StdRng::from_entropy()).map_err(|e|e.to_string());
+            let final_fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2,&mut rand::make_rng::<StdRng>()).map_err(|e|e.to_string());
             if let Err(error) = final_fee {
                 return serialize_aleo_error(&error);
             }
@@ -665,7 +665,7 @@ export! {
             }
             alog!("aleoExecuteProgramInternal 55");
             println!("start verify_execution");
-            let res = process.verify_execution(ConsensusVersion::V8,VarunaVersion::V2, InclusionVersion::V1, &execution).map_err(|err| err.to_string());
+            let res = process.get_stacks(execution.transitions(), false).and_then(|execution_stacks| ProcessNative::verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution, &execution_stacks)).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -689,7 +689,7 @@ export! {
             }).to_string()
         } else {
             println!("start verify_execution");
-            let res = process.verify_execution(ConsensusVersion::V8,VarunaVersion::V2, InclusionVersion::V1,&execution).map_err(|err| err.to_string());
+            let res = process.get_stacks(execution.transitions(), false).and_then(|execution_stacks| ProcessNative::verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution, &execution_stacks)).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -909,6 +909,10 @@ export! {
                     // If `plaintext` is an array, this is a mismatch.
                     PlaintextNative::Array(..) => bail!("'{plaintext_type}' is invalid: expected literal, found array"),
                 },
+                // External structs are looked up by name in the provided struct map.
+                PlaintextTypeNative::ExternalStruct(locator) => {
+                    matches_plaintext_internal(plaintext, &PlaintextTypeNative::Struct(*locator.resource()), structs, depth)
+                }
                 PlaintextTypeNative::Struct(struct_name) => {
                     // Ensure the struct name is valid.
                     ensure!(!ProgramNative::is_reserved_keyword(struct_name), "Struct '{struct_name}' is reserved");
@@ -1148,6 +1152,10 @@ export! {
                     // If `plaintext` is an array, this is a mismatch.
                     PlaintextNative::Array(..) => bail!("'{plaintext_type}' is invalid: expected literal, found array"),
                 },
+                // External structs are looked up by name in the provided struct map.
+                PlaintextTypeNative::ExternalStruct(locator) => {
+                    matches_plaintext_internal(plaintext, &PlaintextTypeNative::Struct(*locator.resource()), structs, depth)
+                }
                 PlaintextTypeNative::Struct(struct_name) => {
                     // Ensure the struct name is valid.
                     ensure!(!ProgramNative::is_reserved_keyword(struct_name), "Struct '{struct_name}' is reserved");

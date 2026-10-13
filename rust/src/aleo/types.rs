@@ -21,7 +21,9 @@ pub use snarkvm_ledger_query::Query;
 
 pub use snarkvm_synthesizer::{
     prelude::{
-        cost_in_microcredits_v1, cost_in_microcredits_v2, deployment_cost, execution_cost,
+        deployment_cost, execution_cost,
+        minimum_cost_in_microcredits_v1 as cost_in_microcredits_v1,
+        minimum_cost_in_microcredits_v2 as cost_in_microcredits_v2,
     },
     snark::{Proof, ProvingKey, VerifyingKey},
     Process, Program, Trace, VM,
