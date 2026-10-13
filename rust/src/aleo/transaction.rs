@@ -8,7 +8,7 @@ use super::types::{
     TransactionNative, ValueNative, VerifyingKeyNative, ViewKeyNative,
 };
 use super::utils::{
-    convert_str_to_transfer_type, hex_to_bytes, serialize_account, serialize_aleo_error,
+    convert_str_to_transfer_type, hex_to_bytes, rest_query_url, serialize_account, serialize_aleo_error,
 };
 use crate::aleo::types::PlaintextNative;
 use crate::{export};
@@ -479,9 +479,9 @@ export! {
 
         let (_, mut trace) = result.unwrap();
         alog!("aleoExecuteProgramInternal 24-1");
-        let query = QueryNative::from_str(&rpc_url).unwrap();
+        let query = QueryNative::from_str(&rest_query_url(&rpc_url)).unwrap();
         alog!("aleoExecuteProgramInternal 24-2");
-        let result = trace.prepare(& query).map_err(|err| err.to_string());
+        let result = trace.prepare(& query).map_err(|err| format!("{err:#}"));
         alog!("aleoExecuteProgramInternal 24-3");
         if let Err(error) = result {
             alog!("{}", format!("aleoExecuteProgramInternal serialize_aleo_error {}", error));
@@ -654,9 +654,9 @@ export! {
             }
             alog!("aleoExecuteProgramInternal 52");
             let (_, mut trace) = res.unwrap();
-            let query = QueryNative::from_str(&rpc_url).unwrap();
+            let query = QueryNative::from_str(&rest_query_url(&rpc_url)).unwrap();
             alog!("aleoExecuteProgramInternal 53");
-            let res = trace.prepare(& query).map_err(|err| err.to_string());
+            let res = trace.prepare(& query).map_err(|err| format!("{err:#}"));
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
