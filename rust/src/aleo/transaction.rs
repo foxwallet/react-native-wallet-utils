@@ -5,7 +5,7 @@ use super::types::{
     PlaintextTypeNative, PrimeField, PrivateKeyNative, ProcessNative, ProgramIDNative,
     ProgramNative, ProvingKeyNative, QueryNative, RecordCiphertextNative, RecordPlaintextNative,
     RecordTypeNative, SignatureNative, StructTypeNative, ToBits, ToBytes, ToField,
-    TransactionNative, ValueNative, VarunaVersion, VerifyingKeyNative, ViewKeyNative,
+    TransactionNative, ValueNative, VerifyingKeyNative, ViewKeyNative,
 };
 use super::utils::{
     convert_str_to_transfer_type, hex_to_bytes, serialize_account, serialize_aleo_error,
@@ -23,8 +23,8 @@ use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::str::FromStr;
 use std::time::Instant;
-use snarkvm_console::network::ConsensusVersion;
-use snarkvm_synthesizer::prelude::InclusionVersion;
+use aleo_rust::ProtocolVersions;
+use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::program::StackTrait;
 use alog::alog;
 
@@ -488,13 +488,22 @@ export! {
             return serialize_aleo_error(&error);
         }
         alog!("aleoExecuteProgramInternal 25");
+        // Determine the protocol versions from the current block height.
+        let versions = query
+            .current_block_height()
+            .and_then(ProtocolVersions::at_height::<CurrentNetwork>)
+            .map_err(|err| err.to_string());
+        if let Err(error) = versions {
+            return serialize_aleo_error(&error);
+        }
+        let versions = versions.unwrap();
         let locator = format!("{}/{}", program.id().to_string(), function_name);
         println!("start prove_execution");
         alog!("aleoExecuteProgramInternal 26");
 
         let result = std::panic::catch_unwind(|| {
         trace
-            .prove_execution::<CurrentAleo, _>(&locator,VarunaVersion::V2, &mut rand::make_rng::<StdRng>())
+            .prove_execution::<CurrentAleo, _>(&locator, versions.varuna, &mut rand::make_rng::<StdRng>())
             .map_err(|e| e.to_string())
         });
         if result.is_err() {
@@ -653,19 +662,19 @@ export! {
             }
             alog!("aleoExecuteProgramInternal 54");
             println!("start prove_fee");
-            let final_fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2,&mut rand::make_rng::<StdRng>()).map_err(|e|e.to_string());
+            let final_fee = trace.prove_fee::<CurrentAleo, _>(versions.varuna, &mut rand::make_rng::<StdRng>()).map_err(|e|e.to_string());
             if let Err(error) = final_fee {
                 return serialize_aleo_error(&error);
             }
             let final_fee = final_fee.unwrap();
             println!("start verify_fee");
-            let res = process.verify_fee(ConsensusVersion::V8,VarunaVersion::V2, InclusionVersion::V1, &final_fee, execution_id).map_err(|e| e.to_string());
+            let res = process.verify_fee(versions.consensus, versions.varuna, versions.inclusion, &final_fee, execution_id).map_err(|e| e.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
             alog!("aleoExecuteProgramInternal 55");
             println!("start verify_execution");
-            let res = process.get_stacks(execution.transitions(), false).and_then(|execution_stacks| ProcessNative::verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution, &execution_stacks)).map_err(|err| err.to_string());
+            let res = process.get_stacks(execution.transitions(), versions.include_direct_imports()).and_then(|execution_stacks| ProcessNative::verify_execution(versions.consensus, versions.varuna, versions.inclusion, &execution, &execution_stacks)).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
@@ -689,7 +698,7 @@ export! {
             }).to_string()
         } else {
             println!("start verify_execution");
-            let res = process.get_stacks(execution.transitions(), false).and_then(|execution_stacks| ProcessNative::verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution, &execution_stacks)).map_err(|err| err.to_string());
+            let res = process.get_stacks(execution.transitions(), versions.include_direct_imports()).and_then(|execution_stacks| ProcessNative::verify_execution(versions.consensus, versions.varuna, versions.inclusion, &execution, &execution_stacks)).map_err(|err| err.to_string());
             if let Err(error) = res {
                 return serialize_aleo_error(&error);
             }
