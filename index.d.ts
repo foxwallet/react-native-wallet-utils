@@ -1,26 +1,26 @@
-declare module '@foxwallet/react-native-wallet-utils' {
-    export function ironfishCreateAccount(): Promise<string>;
-    export function ironfishCreateAccountFromPrivateKeySync(pk: string): string;
-    export function ironfishCreateAccountFromPrivateKey(pk: string): Promise<string>;
-    export function ironfishSignTransaction(rawTx: string, pk: string): Promise<string>;
-    export function ironfishInitSaplingParams(mintParamsPath: string, spendParamsPath: string, outputParamsPath: string): Promise<string>;
-    export function ironfishIsValidAddress(address: string): Promise<boolean>;
-    export function ironfishIsValidAddressSync(address: string): string;
-    export function aleoCreateAccountFromSeed(seed: string): Promise<string>;
-    export function aleoCreateAccountFromSeedSync(seed: string): string;
-    export function aleoCreateAccountFromPrivateKey(pk: string): Promise<string>;
-    export function aleoCreateAccountFromPrivateKeySync(pk: string): string;
-    export function aleoIsValidAddress(address: string): Promise<string>;
-    export function aleoIsValidAddressSync(address: string): string;
-    export function aleoMerkleTreeHashTwoElements(prefix: string, left: string, right: string): Promise<string>;
-    export function aleoMerkleTreeHashTwoElementsSync(prefix: string, left: string, right: string): string;
-    export function aleoDecryptRecord(ciphertext: string, vk: string): Promise<string>;
-    export function aleoDeserializeCreditsRecord(recordStr: string): Promise<string>;
-    export function aleoSignMessage(pk: string, message: string): Promise<string>;
+declare const WalletCore: {
+    ironfishCreateAccount(): Promise<string>;
+    ironfishCreateAccountFromPrivateKeySync(pk: string): string;
+    ironfishCreateAccountFromPrivateKey(pk: string): Promise<string>;
+    ironfishSignTransaction(rawTx: string, pk: string): Promise<string>;
+    ironfishInitSaplingParams(mintParamsPath: string, spendParamsPath: string, outputParamsPath: string): Promise<string>;
+    ironfishIsValidAddress(address: string): Promise<boolean>;
+    ironfishIsValidAddressSync(address: string): string;
+    aleoCreateAccountFromSeed(seed: string): Promise<string>;
+    aleoCreateAccountFromSeedSync(seed: string): string;
+    aleoCreateAccountFromPrivateKey(pk: string): Promise<string>;
+    aleoCreateAccountFromPrivateKeySync(pk: string): string;
+    aleoIsValidAddress(address: string): Promise<string>;
+    aleoIsValidAddressSync(address: string): string;
+    aleoMerkleTreeHashTwoElements(prefix: string, left: string, right: string): Promise<string>;
+    aleoMerkleTreeHashTwoElementsSync(prefix: string, left: string, right: string): string;
+    aleoDecryptRecord(ciphertext: string, vk: string): Promise<string>;
+    aleoDeserializeCreditsRecord(recordStr: string): Promise<string>;
+    aleoSignMessage(pk: string, message: string): Promise<string>;
     /** Offline snarkVM fee in microcredits. JSON request/response documented in README.md. */
-    export function aleoEstimateExecutionFee(request: string): Promise<string>;
-    export function aleoGenerateProverFiles(dir: string, rpc_url: string, network: string, program_id: string, function_name: string, prover_file_path: string, verifier_file_path: string): Promise<string>;
-    export function aleoExecuteProgram(
+    aleoEstimateExecutionFee(request: string): Promise<string>;
+    aleoGenerateProverFiles(dir: string, rpc_url: string, network: string, program_id: string, function_name: string, prover_file_path: string, verifier_file_path: string): Promise<string>;
+    aleoExecuteProgram(
         dir: string,
         rpc_url: string,
         network: string,
@@ -36,12 +36,14 @@ declare module '@foxwallet/react-native-wallet-utils' {
         fee_prover_file_path: string,
         fee_verifier_file_path: string
     ): Promise<string>;
-    export function aleoParseRecord(plaintext: string): Promise<string>;
-    export function aleoHashBhp256(str: string): Promise<string>;
-    export function spaceMeshAddressFromPubKey(pub: string): Promise<string>;
-    export function spaceMeshAddressFromPubKeySync(pub: string): string;
-    export function spaceMeshStringToAddressSync(pub: string): string;
-    export function spaceMeshCreateTransaction(pk: string, to: string, amount: string, nonce: string, gasPrice: string, genesisID: string): Promise<string>;
-    export function spaceMeshSelfSpawnTx(pk: string, nonce: string, gasPrice: string, genesisID: string): Promise<string>;
-    export function polkadotScrypt(params: { passphrase: string, salt: string, log2_n: number, r: number, p: number }): Promise<string>;
-}
+    aleoParseRecord(plaintext: string): Promise<string>;
+    aleoHashBhp256(str: string): Promise<string>;
+    spaceMeshAddressFromPubKey(pub: string): Promise<string>;
+    spaceMeshAddressFromPubKeySync(pub: string): string;
+    spaceMeshStringToAddressSync(pub: string): string;
+    spaceMeshCreateTransaction(pk: string, to: string, amount: string, nonce: string, gasPrice: string, genesisID: string): Promise<string>;
+    spaceMeshSelfSpawnTx(pk: string, nonce: string, gasPrice: string, genesisID: string): Promise<string>;
+    polkadotScrypt(params: { passphrase: string, salt: string, log2_n: number, r: number, p: number }): Promise<string>;
+};
+
+export default WalletCore;
