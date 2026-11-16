@@ -17,6 +17,8 @@ declare module '@foxwallet/react-native-wallet-utils' {
     export function aleoDecryptRecord(ciphertext: string, vk: string): Promise<string>;
     export function aleoDeserializeCreditsRecord(recordStr: string): Promise<string>;
     export function aleoSignMessage(pk: string, message: string): Promise<string>;
+    /** Offline snarkVM fee in microcredits. JSON request/response documented in README.md. */
+    export function aleoEstimateExecutionFee(request: string): Promise<string>;
     export function aleoGenerateProverFiles(dir: string, rpc_url: string, network: string, program_id: string, function_name: string, prover_file_path: string, verifier_file_path: string): Promise<string>;
     export function aleoExecuteProgram(
         dir: string,

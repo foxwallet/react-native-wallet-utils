@@ -45,6 +45,7 @@ const char* aleo_sign_message(struct ExternError*, const char* pk, const char* m
 const char* aleo_generate_prover_files(struct ExternError*, const char* dir, const char* rpc_url, const char* network, const char* program_id, const char* function_name, const char* prover_file_path, const char* verifier_file_path);
 
 const char* aleo_execute_program(struct ExternError*, const char* dir, const char* rpc_url, const char* network, const char* pk, const char* program_id, const char* function_name, const char* inputs, const char* fee_record, const char* base_fee, const char* priority_fee, const char* prover_file_path, const char* verifier_file_path, const char* fee_prover_file_path, const char* fee_verifier_file_path);
+const char* aleo_estimate_execution_fee(struct ExternError*, const char* request);
 
 const char* aleo_parse_record(struct ExternError*, const char* plaintext);
 

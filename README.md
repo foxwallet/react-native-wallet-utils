@@ -85,3 +85,26 @@ yarn test
 ./scripts/go_build.sh
 ```
 
+## Aleo execution fee estimation
+
+`aleoEstimateExecutionFee(request: string): Promise<string>` estimates fees locally with snarkVM 4.11.0. It does not generate a proof or submit a transaction. Android and iOS expose the same JSON interface. Rebuild the native libraries with `yarn build` after changing the Rust implementation.
+
+The JSON request is:
+
+```json
+{
+  "network": "mainnet",
+  "blockHeight": 23715963,
+  "programId": "credits.aleo",
+  "functionName": "transfer_public",
+  "programs": []
+}
+```
+
+For custom programs, `programs` contains `{ "id": "example.aleo", "source": "...", "edition": 1 }` entries, ordered with transitive dependencies first and the root last. Do not include the built-in `credits.aleo`. Resolve source and edition from the same official RPC response (`/program/{id}?metadata=true`). The estimator selects the consensus rules at `blockHeight` (mainnet V4 onward), rather than assuming the latest software consensus version is active.
+
+Optional `address` and `inputs: string[]` estimate the actual call using `execution_cost_for_call`, without a user private key. Without inputs, the estimator uses sampled values and a disposable key, matching the official SDK's generic execution estimation. Dynamic calls require actual inputs and all programs they invoke. Input-dependent assertions can also require actual inputs.
+
+Success is JSON `{ "error": "", "data": { "baseFee": "2725", "storageFee": "...", "finalizeFee": "...", "blockHeight": 23715963, "consensusVersion": "V21" } }`; amounts are decimal strings in microcredits. These example amounts are not a fee schedule. Errors use the existing `{ "error": "...", "data": "" }` contract. Priority fees are separate. The special internal charge for `credits.aleo/split` is also separate from its estimated execution cost.
+
+Run the offline estimator tests with `cargo test --manifest-path rust/Cargo.toml aleo::fee::tests -- --test-threads=1`.
