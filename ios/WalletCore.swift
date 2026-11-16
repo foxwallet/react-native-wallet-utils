@@ -20,6 +20,7 @@ func handle_error<T, U>(
 
 @objc(WalletCore)
 class WalletCore: NSObject {
+  private let aleoFeeQueue = DispatchQueue(label: "com.foxwallet.aleo.fee", qos: .userInitiated)
 
   public static func requiresMainQueueSetup() -> Bool {
     return true;
@@ -179,6 +180,20 @@ class WalletCore: NSObject {
        core_destroy_string(res!)
        return val
    })
+  }
+
+  @objc func aleoEstimateExecutionFee(_ request: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    aleoFeeQueue.async {
+      handle_error(
+        resolve: resolve,
+        reject: reject,
+        get_result: { aleo_estimate_execution_fee($0, request) },
+        success: { (res: Optional<UnsafePointer<CChar>>) -> String in
+          let val = String(cString: res!)
+          core_destroy_string(res!)
+          return val
+        })
+    }
   }
 
   @objc func aleoDecryptRecord(_ ciphertext: String, vk: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {

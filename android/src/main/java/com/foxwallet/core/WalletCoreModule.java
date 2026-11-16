@@ -162,6 +162,11 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void aleoEstimateExecutionFee(String request, Promise promise) {
+        promise.resolve(aleoEstimateExecutionFeeInternal(request));
+    }
+
+    @ReactMethod
     public void aleoParseRecord(String plaintext, Promise promise) {
         promise.resolve(aleoParseRecordInternal(plaintext));
     }
@@ -207,6 +212,7 @@ public class WalletCoreModule extends ReactContextBaseJavaModule {
     private static native String aleoGenerateProverFilesInternal(String dir, String rpc_url, String network, String program_id, String function_name, String prover_file_path, String verifier_file_path);
 
     private static native String aleoExecuteProgramInternal(String dir, String rpc_url, String network, String pk, String program_id, String function_name, String inputs, String fee_record, String base_fee, String priority_fee, String prover_file_path, String verifier_file_path, String fee_prover_file_path, String fee_verifier_file_path);
+    private static native String aleoEstimateExecutionFeeInternal(String request);
 
     private static native String aleoParseRecordInternal(String plaintext);
 
