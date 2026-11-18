@@ -10,7 +10,7 @@ NDK_HOME="${NDK_HOME:-${ANDROID_NDK_HOME:-${ANDROID_HOME:-${ANDROID_SDK_ROOT:-${
 export ANDROID_NDK_HOME="${NDK_HOME}"
 
 # Nightly toolchain used for -Z build-std.
-NIGHTLY_TOOLCHAIN=nightly-2025-08-28-aarch64-apple-darwin
+NIGHTLY_TOOLCHAIN=nightly-2025-08-28
 
 ANDROID_ARCHS=(aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android)
 ANDROID_FOLDER=(arm64-v8a armeabi-v7a x86 x86_64)

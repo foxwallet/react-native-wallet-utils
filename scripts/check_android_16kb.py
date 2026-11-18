@@ -51,15 +51,21 @@ def inspect_elf(name, data):
     ):
         errors.append("LOAD alignment or address/offset congruence is below 16 KB")
     for relro in (segment for segment in segments if segment["type"] == 0x6474E552):
-        end = relro["address"] + relro["memsz"]
+        start = relro["address"]
+        end = start + relro["memsz"]
+        protection_start = start // PAGE_SIZE * PAGE_SIZE
         protection_end = (end + PAGE_SIZE - 1) // PAGE_SIZE * PAGE_SIZE
         if any(
             segment["flags"] & 2
-            and max(end, segment["address"])
-            < min(protection_end, segment["address"] + segment["memsz"])
+            and (
+                max(protection_start, segment["address"])
+                < min(start, segment["address"] + segment["memsz"])
+                or max(end, segment["address"])
+                < min(protection_end, segment["address"] + segment["memsz"])
+            )
             for segment in loads
         ):
-            errors.append("RELRO page protection overlaps subsequent writable LOAD data")
+            errors.append("RELRO page protection overlaps writable LOAD data outside RELRO")
     return {"path": name, "ndk": ndk, "errors": errors}
 
 
