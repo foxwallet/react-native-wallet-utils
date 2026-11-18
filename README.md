@@ -39,8 +39,8 @@ async function getRandomPhrase() {
 - `rustup` (tested on `rustup 1.27.0`)
 - `rustc` (tested on `rustc 1.77.2`)
 - `cargo` (tested on `cargo 1.77.2`)
-- `android_ndk` (tested on `r23`, can be downloaded [here](https://developer.android.com/ndk/downloads))
-- `$NDK_HOME` envarionment variable set to ndk home directory (eg. `/usr/local/opt/android-ndk`)
+- Android NDK `28.1.13356709` (r28b), available through the Android SDK Manager
+- Optional `$NDK_HOME` override for the NDK directory. By default, the build uses `$ANDROID_HOME/ndk/28.1.13356709` (or `$ANDROID_SDK_ROOT`, falling back to `~/Library/Android/sdk`). Rust and gomobile use this same NDK.
 - `go`
 
 \* It's recommended to install **Android Studio** and use that to install the necessary build tools and SDKs for the Android version you want to test on. It's also the best way to test in the emulator.
@@ -84,6 +84,30 @@ yarn test
 ./scripts/rust_build.sh
 ./scripts/go_build.sh
 ```
+
+To rebuild only Android artifacts for Google Play:
+
+```shell script
+./scripts/rust_build.sh android
+./scripts/go_build.sh android
+```
+
+If your shell exports an older NDK path, set `NDK_HOME` to the installed r28b
+directory when running these commands. The scripts reject NDK versions below r28.
+
+Both Android builds set 16 KB maximum and common page sizes. Publish the rebuilt
+`android/src/main/jniLibs/*/libcore.so` and `spacemesh-go/spacemesh.aar` together,
+then update the consuming app's wallet-utils dependency. Changing the app's NDK
+version alone does not rebuild these precompiled files.
+
+Check the 64-bit ELF LOAD and RELRO layouts, and confirm the rebuilt NDK version:
+
+```shell script
+python3 scripts/check_android_16kb.py android/src/main/jniLibs/arm64-v8a/libcore.so android/src/main/jniLibs/x86_64/libcore.so spacemesh-go/spacemesh.aar --min-ndk 28
+```
+
+The checker also accepts APK/AAB files. Static checks do not replace testing on
+an Android device with `adb shell getconf PAGE_SIZE` returning `16384`.
 
 ## Aleo execution fee estimation
 

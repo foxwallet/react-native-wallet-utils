@@ -4,10 +4,13 @@
 LIB_NAME=core
 API_LEVEL=30
 
-NDK_HOME=~/Library/Android/sdk/ndk/23.1.7779620
+FOXWALLET_NDK_VERSION="${FOXWALLET_NDK_VERSION:-28.1.13356709}"
+NDK_HOME="${NDK_HOME:-${ANDROID_NDK_HOME:-${ANDROID_HOME:-${ANDROID_SDK_ROOT:-${HOME}/Library/Android/sdk}}/ndk/${FOXWALLET_NDK_VERSION}}}"
+# gomobile reads ANDROID_NDK_HOME; use the same NDK as the Rust build.
+export ANDROID_NDK_HOME="${NDK_HOME}"
 
 # Nightly toolchain used for -Z build-std.
-NIGHTLY_TOOLCHAIN=nightly-2025-08-28-aarch64-apple-darwin
+NIGHTLY_TOOLCHAIN=nightly-2025-08-28
 
 ANDROID_ARCHS=(aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android)
 ANDROID_FOLDER=(arm64-v8a armeabi-v7a x86 x86_64)
@@ -23,12 +26,8 @@ ANDROID_PREBUILD_BIN=${NDK_HOME}/toolchains/llvm/prebuilt/${OS_ARCH}-x86_64/bin
 #CC_i686_linux_android=${ANDROID_PREBUILD_BIN}/i686-linux-android29-clang
 #CC_x86_64_linux_android=${ANDROID_PREBUILD_BIN}/x86_64-linux-android29-clang
 
-GOPATH_VALUE=$(go env GOPATH)
-if [ -n "$GOPATH_VALUE" ]; then
-    export PATH=$PATH:$GOPATH_VALUE/bin
-    echo "Added $GOPATH_VALUE/bin to PATH"
-else
-    echo "GOPATH is empty"
-    exit 1
+if command -v go >/dev/null 2>&1; then
+    GOPATH_VALUE=$(go env GOPATH)
+    export PATH="$PATH:$GOPATH_VALUE/bin"
 fi
 
